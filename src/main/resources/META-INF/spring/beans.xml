@@ -10,16 +10,27 @@
       http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
       http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd
       http://www.springframework.org/schema/osgi-compendium http://www.springframework.org/schema/osgi-compendium/spring-osgi-compendium.xsd">
+      
+      
+      <bean id="myDataSource" class="ige.integration.constants.Constants">
+      	<property name="DATABASE" value="camel"/>
+      	<property name="PORT" value="3306"/>
+      	<property name="HOST" value="localhost"/>
+      	<property name="USER" value="root"/>
+      	<property name="PASS" value="root"/>
+      </bean>
 
   <bean id="dataBean" class="ige.integration.utils.DataBean" />
 	<bean id="placeOrderBean" class="ige.integration.model.InRoomOrder" />
 	<bean id="tenantInfoFilter" class="ige.integration.service.PopulateTenantInfo">
-
+		<property name="dataSource" ref="myDataSource"/>
 	</bean>
 	
 	<bean id="integrationProcessor" class="ige.integration.processes.IntegrationProcessor">
+		<property name="dataSource" ref="myDataSource"/>
 	</bean>
 	<bean id="inRoomDiningProcessor" class="ige.integration.processes.InRoomDiningProcessor">
+		<property name="dataSource" ref="myDataSource"/>
 	</bean>
 	<bean id="jmsProcessor" class="ige.integration.processes.JMSProcessor" />
 	<bean id="restProcessor" class="ige.integration.processes.RestProcessor" />
@@ -31,8 +42,8 @@
 		</property>
 	</bean> -->
 
-	<bean class="org.apache.camel.component.sql.SqlComponent" id="sql">
-	</bean>
+	<!-- <bean class="org.apache.camel.component.sql.SqlComponent" id="sql">
+	</bean> -->
 	
 	<bean id="jms" class="org.apache.camel.component.jms.JmsComponent">
 		<property name="connectionFactory">

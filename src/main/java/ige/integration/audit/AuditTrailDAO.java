@@ -1,25 +1,26 @@
 package ige.integration.audit;
 
+import ige.integration.constants.Constants;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
-
-import com.mysql.jdbc.Statement;
+import java.sql.Statement;
 
 public class AuditTrailDAO {
 	//private static final org.apache.log4j.Logger LOGGER = Logger.getLogger(AuditTrailDAO.class.getName());
 	Connection connection;
 	Statement statement;
 	PreparedStatement preparedStatement;
-	public void addAuditTrail(final AuditLogs auditlog) {
+	public void addAuditTrail(final AuditLogs auditlog, Constants dataSource) {
         //Add Database Logic here.
     	//JdbcTemplate jdbc = new JdbcTemplate(dataSource);
 		try{
 			Class.forName("com.mysql.jdbc.Driver");
 		      // Setup the connection with the DB
 		      connection = DriverManager
-		          .getConnection("jdbc:mysql://localhost/camel?"
-		              + "user=root&password=root");
+		          .getConnection("jdbc:mysql://"+dataSource.getHOST()+":"+dataSource.getPORT()+"/"+dataSource.getDATABASE()+"?"
+		              + "user="+dataSource.getUSER()+"&password="+dataSource.getPASS());
 		String sql = "insert into auditlog (createdBy, createdDate, actionDescription, actionResult, userName, tenantId, requestPayload, responsePayload) values (?,?,?,?,?,?,?,?)";
 		System.out.println(sql);
 		preparedStatement = connection.prepareStatement(sql);

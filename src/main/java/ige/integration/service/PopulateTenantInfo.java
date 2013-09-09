@@ -1,5 +1,6 @@
 package ige.integration.service;
 
+import ige.integration.constants.Constants;
 import ige.integration.model.TenantInfo;
 
 import java.sql.Connection;
@@ -10,6 +11,13 @@ import java.sql.ResultSet;
 import com.mysql.jdbc.Statement;
 
 public class PopulateTenantInfo {
+	private Constants dataSource;
+	public Constants getDataSource() {
+		return dataSource;
+	}
+	public void setDataSource(Constants dataSource) {
+		this.dataSource = dataSource;
+	}
 	Connection connection;
 	Statement statement;
 	PreparedStatement preparedStatement;
@@ -21,9 +29,9 @@ public class PopulateTenantInfo {
 			try{
 				Class.forName("com.mysql.jdbc.Driver");
 			      // Setup the connection with the DB
-			      connection = DriverManager
-			          .getConnection("jdbc:mysql://localhost/camel?"
-			              + "user=root&password=root");
+				connection = DriverManager
+				          .getConnection("jdbc:mysql://"+dataSource.getHOST()+":"+dataSource.getPORT()+"/"+dataSource.getDATABASE()+"?"
+				              + "user="+dataSource.getUSER()+"&password="+dataSource.getPASS());
 		    	preparedStatement = connection.prepareStatement(sql);
 		    	resultSet = preparedStatement.executeQuery();
 		    	if (resultSet.next()) {

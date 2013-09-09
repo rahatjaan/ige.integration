@@ -45,7 +45,7 @@ public class IntegrationRouteBuilder extends RouteBuilder {
 		//onException(Exception.class,IOException.class).handled(true).process(new CustomExceptionProcessor());
 		//from("restlet:/placeOrder?restletMethod=POST")
 		//from("direct:start")
-		from("jetty:http://localhost:8181/RestConsumer/placeOrder")
+		from("jetty:http://0.0.0.0:8888/RestConsumer/placeOrder")
 		.unmarshal().xmljson()	
 		.beanRef("inRoomDiningProcessor")	
 		.choice()

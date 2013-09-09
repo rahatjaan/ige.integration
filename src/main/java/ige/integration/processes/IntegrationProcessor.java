@@ -1,5 +1,6 @@
 package ige.integration.processes;
 
+import ige.integration.constants.Constants;
 import ige.integration.model.InRoomOrderPayLoad;
 import ige.integration.model.TenantInfo;
 
@@ -15,6 +16,18 @@ import com.mysql.jdbc.Statement;
 
 public class IntegrationProcessor implements Processor {
 	
+	private Constants dataSource;
+	
+	public Constants getDataSource() {
+		return dataSource;
+	}
+
+
+	public void setDataSource(Constants dataSource) {
+		this.dataSource = dataSource;
+	}
+
+
 	public void process(Exchange exchange) throws Exception {
 		InRoomOrderPayLoad payload = populateTenantInfo(exchange);
 		exchange.getOut().setBody(payload);
@@ -41,9 +54,9 @@ public class IntegrationProcessor implements Processor {
 			try{
 				Class.forName("com.mysql.jdbc.Driver");
 			      // Setup the connection with the DB
-			      connection = DriverManager
-			          .getConnection("jdbc:mysql://localhost/camel?"
-			              + "user=root&password=root");
+				connection = DriverManager
+				          .getConnection("jdbc:mysql://"+dataSource.getHOST()+":"+dataSource.getPORT()+"/"+dataSource.getDATABASE()+"?"
+				              + "user="+dataSource.getUSER()+"&password="+dataSource.getPASS());
 		    	preparedStatement = connection.prepareStatement(sql);
 		    	resultSet = preparedStatement.executeQuery();
 		    	if (resultSet.next()) {
