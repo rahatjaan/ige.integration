@@ -1,23 +1,12 @@
 package ige.integration.router;
 
-import ige.integration.exception.CustomExceptionProcessor;
 import ige.integration.processes.DynamicRouteProcessor;
-import ige.integration.processes.IntegrationProcessor;
 import ige.integration.processes.JMSProcessor;
 import ige.integration.processes.RestProcessor;
-import ige.integration.utils.DataBean;
 
-import java.io.IOException;
-
-import org.apache.camel.CamelContext;
-import org.apache.camel.Exchange;
-import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
-import org.apache.camel.impl.DefaultCamelContext;
-
+import org.apache.camel.spring.Main;
 public class IntegrationRouteBuilder extends RouteBuilder {
-	// create CamelContext
-	CamelContext context = new DefaultCamelContext();
 
 	private final String HOSTNAME = "smtp.gmail.com";
 	private final String PORT = "587";
@@ -25,18 +14,22 @@ public class IntegrationRouteBuilder extends RouteBuilder {
 	private final String USERNAME = "igeintegration@gmail.com";
 	private final String FROM = "igeintegration@gmail.com";
 	private final String TO = "rahat.jaan@gmail.com";
-
-	@Override
+	
+	public static void main(String[] args) throws Exception{
+        new Main().run(args);
+    }
+	
+	
 	public void configure() {
 
 		igeInroomDiningFlow();
 		jmsInFlow();//test flow to receive message, mocking as POS inbound endpoint
 		
-		guestCheckInFlow();
-	}
+		//guestCheckInFlow();
+	}/*
 	
 	private void guestCheckInFlow() {
-		from("jetty:http://localhost:8888/guestCheckin?restletMethod=POST")
+		from("jetty:http://localhost:8181/RestConsumer/placeOrder")
 		.unmarshal().xmljson()	
 		.beanRef("inRoomDiningProcessor")	
 		.setHeader("OutboundUrl").simple("${in.body.tenant.outboundUrl}")
@@ -45,7 +38,7 @@ public class IntegrationRouteBuilder extends RouteBuilder {
 		.setBody(simple("payload=${in.body}"))
 		.to("http://localhost:8080/POSMockup/guestcheckin");
 		
-	}
+	}*/
 
 	
 	private void igeInroomDiningFlow() {
@@ -53,14 +46,6 @@ public class IntegrationRouteBuilder extends RouteBuilder {
 		//from("restlet:/placeOrder?restletMethod=POST")
 		//from("direct:start")
 		from("jetty:http://localhost:8181/RestConsumer/placeOrder")
-		.process(new Processor() {
-
-			public void process(Exchange arg0) throws Exception {
-				System.out.println(arg0.getIn().getBody().toString());
-				
-			}
-			
-		})
 		.unmarshal().xmljson()	
 		.beanRef("inRoomDiningProcessor")	
 		.choice()
@@ -93,30 +78,5 @@ public class IntegrationRouteBuilder extends RouteBuilder {
 
 	private void jmsInFlow() {
 		from("jms:orders").process(new JMSProcessor());
-	}
-
-	private void flow1() {
-		from("restlet:/createOrder?restletMethod=POST")
-		.transform()
-		.method(DataBean.class, "newData(${header[id]})")
-		.pipeline("sql:{{sql.selectData}}")
-		.beanRef("dataBean", "processOrder")
-		.filter()
-		.method(DataBean.class, "checkOrder")
-		.process(new IntegrationProcessor())
-		.choice()
-		.when()
-		.xpath("/dataBean/id=1")
-		.to("jms:orders")
-		.when()
-		.xpath("/dataBean/id=2")
-		// .setBody(this.body()).to("restlet:/postOrder?restletMethod=GET")
-		.setBody(this.body())
-		.to("restlet:/postOrder?restletMethod=GET")
-		.otherwise()
-		.setHeader("subject", constant("TEST"))
-		.to("smtp://" + HOSTNAME + ":" + PORT + "?password=" + PASSWORD
-				+ "&username=" + USERNAME + "&from=" + FROM + "&to="
-				+ TO + "&mail.smtp.starttls.enable=true");
 	}
 }

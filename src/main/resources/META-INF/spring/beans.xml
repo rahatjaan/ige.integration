@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:ctx="http://www.springframework.org/schema/context"
+      xmlns:camel="http://camel.apache.org/schema/spring"
+      xmlns:osgix="http://www.springframework.org/schema/osgi-compendium"
+      xsi:schemaLocation="
+      http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd
+      http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+      http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd
+      http://www.springframework.org/schema/osgi-compendium http://www.springframework.org/schema/osgi-compendium/spring-osgi-compendium.xsd">
+
+  <bean id="dataBean" class="ige.integration.utils.DataBean" />
+	<bean id="placeOrderBean" class="ige.integration.model.InRoomOrder" />
+	<bean id="tenantInfoFilter" class="ige.integration.service.PopulateTenantInfo">
+
+	</bean>
+	
+	<bean id="integrationProcessor" class="ige.integration.processes.IntegrationProcessor">
+	</bean>
+	<bean id="inRoomDiningProcessor" class="ige.integration.processes.InRoomDiningProcessor">
+	</bean>
+	<bean id="jmsProcessor" class="ige.integration.processes.JMSProcessor" />
+	<bean id="restProcessor" class="ige.integration.processes.RestProcessor" />
+	<bean id="responseProcessor" class="ige.integration.processes.ResponseProcessor" /><!-- 
+
+	<bean class="ige.integration.utils.DatabaseCreation"
+		destroy-method="destroy" id="initDatabase" init-method="create">
+		<property name="dataSource" ref="myDataSource">
+		</property>
+	</bean> -->
+
+	<bean class="org.apache.camel.component.sql.SqlComponent" id="sql">
+	</bean>
+	
+	<bean id="jms" class="org.apache.camel.component.jms.JmsComponent">
+		<property name="connectionFactory">
+			<bean class="org.apache.activemq.ActiveMQConnectionFactory">
+				<property name="brokerURL" value="vm://localhost" />
+			</bean>
+		</property>
+	</bean>
+  
+  <camel:camelContext xmlns="http://camel.apache.org/schema/spring">
+    <!-- install the Java DSL route builder -->
+    <package>ige.integration.router</package>
+  </camel:camelContext>
+</beans>

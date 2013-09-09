@@ -1,6 +1,5 @@
 package ige.integration.audit;
 
-import java.util.Date;
 
 public class AuditLogs implements java.io.Serializable {
 
