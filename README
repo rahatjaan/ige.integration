@@ -1,0 +1,6 @@
+Compile: mvn clean install
+Run the application:
+
+mvn jetty:run
+OR
+mvn tomcat7:run

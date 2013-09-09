@@ -2,6 +2,8 @@ package ige.integration.utils;
 
 import javax.sql.DataSource;
 
+import org.springframework.jdbc.core.JdbcTemplate;
+
 public class DatabaseCreation {
 	 /*private static final Logger LOG = (Logger) LoggerFactory
 	            .getLogger(DatabaseCreation.class);*/
@@ -16,7 +18,7 @@ public class DatabaseCreation {
 	    }
 
 	    public void create() throws Exception {
-	        /*JdbcTemplate jdbc = new JdbcTemplate(dataSource);
+	        JdbcTemplate jdbc = new JdbcTemplate(dataSource);
 
 	        String sql = "create table tenant (\n" + "  tenant_guid integer primary key,\n"
 	                + "  outbound_end_point_type integer,\n" + "  outbound_url varchar(100),\n"
@@ -36,23 +38,23 @@ public class DatabaseCreation {
 	        sql = "insert into tenant values (1,1,'http://localhost:8080/RestConsumer/InRoomDinning','123')";
 	        jdbc.execute(sql);
 	        
-	        sql = "create table auditlog (\n" + "  auditLogId integer primary key,\n"
+	        /*sql = "create table auditlog (\n" + "  auditLogId integer primary key,\n"
 	                + "  createdBy varchar(200),\n" + "  createdDate varchar(100),\n"
 	                + "  actionDescription varchar(500),\n" + " actionResult varchar(300),\n"
 	                + " userName varchar(100),\n" + " requestPayload text,\n"
 	                + " responsePayload text,\n"
 	                + ");\n";
-	        jdbc.execute(sql);
+	        jdbc.execute(sql);*/
 	        System.out.println("Created table tenant ...");//LOG.info("... created table dataTable");
-*/	    }
+	    }
 
 	    public void destroy() throws Exception {
-	        /*JdbcTemplate jdbc = new JdbcTemplate(dataSource);
+	        JdbcTemplate jdbc = new JdbcTemplate(dataSource);
 
 	        try {
 	            jdbc.execute("drop table tenant");
 	        } catch (Throwable e) {
 	            // ignore
-	        }*/
+	        }
 	    }
 }
