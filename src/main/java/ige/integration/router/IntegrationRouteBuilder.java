@@ -4,6 +4,8 @@ import ige.integration.processes.DynamicRouteProcessor;
 import ige.integration.processes.JMSProcessor;
 import ige.integration.processes.RestProcessor;
 
+import org.apache.camel.Exchange;
+import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.spring.Main;
 public class IntegrationRouteBuilder extends RouteBuilder {
@@ -58,6 +60,12 @@ public class IntegrationRouteBuilder extends RouteBuilder {
 		.setBody(simple("payload=${in.body}"))
 		//.to("http://localhost:8080/POSMockup/InRoomDining")
 		.process(new DynamicRouteProcessor())
+		.marshal().xmljson()
+		.process(new Processor(){
+			public void process(Exchange arg0) throws Exception {
+				System.out.println(arg0.getIn().getBody().toString());
+			}
+		})
 		//.to("uri:"+simple("${in.body.tenant.outboundUrl}"))
 		.when(simple("${in.body.tenant.outboundType} == '2'"))
 		.setBody(this.body())
