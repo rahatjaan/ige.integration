@@ -17,22 +17,10 @@
       	<property name="PORT" value="3306"/>
       	<property name="HOST" value="localhost"/>
       	<property name="USER" value="servicemix"/>
-      	<property name="PASS" value="cyber8T0ken"/>
+      	<property name="PASS" value="cyber8T0ken"/><!-- 
+      	<property name="USER" value="root"/>
+      	<property name="PASS" value="root"/> -->
       </bean>
-      
-      
-      <bean id="endpointMapping" class="org.apache.camel.component.spring.ws.bean.CamelEndpointMapping" />
- 
-		<!-- <bean id="wsdl" class="org.springframework.ws.wsdl.wsdl11.DefaultWsdl11Definition">
-			<property name="schema">
-		        <bean class="org.springframework.xml.xsd.SimpleXsdSchema">
-		            <property name="xsd" value="http://50.31.1.63:8080/ws-pms/schemas/BillDetailsServiceOperations.xsd"/>
-		        </bean>
-		    </property>
-		    <property name="portTypeName" value="BillDetailsService"/>
-		    <property name="locationUri" value="/endpoints"/>
-		    <property name="targetNamespace" value="http://50.31.1.63:8080/ws-pms"/>
-		</bean> -->
 
   <bean id="dataBean" class="ige.integration.utils.DataBean" />
 	<bean id="placeOrderBean" class="ige.integration.model.InRoomOrder" />

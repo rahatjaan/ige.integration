@@ -1,5 +1,6 @@
 package ige.integration.processes;
 
+import ige.integration.transformer.BillDetailsTransformer;
 import ige.integration.utils.XMLElementExtractor;
 
 import java.io.StringWriter;
@@ -28,22 +29,22 @@ public class DynamicRouteProcessor implements Processor{
 		String url = arg0.getIn().getHeader("OutboundUrl").toString();
 		System.out.println("URL IS: "+url);
 		String req = arg0.getIn().getBody().toString();
-		//url = "spring-ws:http://localhost:8080/spring-webservices-pms/endpoints?rootqname:{http://com/spring/pms/webservices/billservice}/BillDetailsRequest";
-		/*String req = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:bil=\"http://com/spring/pms/webservices/billservice\"><soapenv:Header/><soapenv:Body><bil:BillDetailsRequest><bil:lastName>Ali</bil:lastName><bil:memberShipNumber>23</bil:memberShipNumber><bil:roomNumber>1</bil:roomNumber></bil:BillDetailsRequest></soapenv:Body></soapenv:Envelope>";
-		//arg0.getContext().createProducerTemplate().send((String) arg0.getIn().getHeader("OutboundUrl"),arg0);
-		arg0.getOut().setBody(req);
-		arg0.getContext().createProducerTemplate().requestBody(url,arg0);*/
-		//System.out.println("here");
 		//*******************************************
 		System.out.println(req);
 		int ind1 = req.indexOf("<");
 		req = req.substring(ind1);
-		req = req.replaceAll("&gt;",">");
-		req = req.replaceAll("&lt;","<");
+		if(req.contains("&gt;")){
+			req = req.replaceAll("&gt;",">");
+			req = req.replaceAll("&lt;","<");
+		}
+		System.out.println("1"+req);
 		req = req.substring(req.indexOf("<o>"));
+		System.out.println("2"+req);
 		req = req.replaceAll("<o>","");
 		req = req.replaceAll("</o>","");
-		req = req.substring(0,req.indexOf("</payload>"));
+		System.out.println("3"+req);
+		if(req.contains("</payload>"))
+			req = req.substring(0,req.indexOf("</payload>"));
 		
 		System.out.println("REQUEST : "+req);
 		try {
@@ -62,8 +63,9 @@ public class DynamicRouteProcessor implements Processor{
             System.out.println(jsonString);
             arg0.getOut().setBody(jsonString);*/
             //String message=XMLElementExtractor.extractXmlElementValue(req, "lastName");
-            arg0.getOut().setBody(message);
+            String body = BillDetailsTransformer.transform(message);
             soapConnection.close();
+            arg0.getOut().setBody(body);
         } catch (Exception e) {
             System.err.println("Error occurred while sending SOAP Request to Server");
             e.printStackTrace();
@@ -79,53 +81,35 @@ public class DynamicRouteProcessor implements Processor{
         SOAPMessage soapMessage = messageFactory.createMessage();
         SOAPPart soapPart = soapMessage.getSOAPPart();
 
-        String serverURI = "http://com/spring/pms/webservices/billservice";
+        String serverURI = "http://webservice.integration.ige/";
 
         // SOAP Envelope
         SOAPEnvelope envelope = soapPart.getEnvelope();
-        envelope.addNamespaceDeclaration("bil", serverURI);
-
-        /*
-        Constructed SOAP Request Message:
-        <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:example="http://ws.cdyne.com/">
-            <SOAP-ENV:Header/>
-            <SOAP-ENV:Body>
-                <example:VerifyEmail>
-                    <example:email>mutantninja@gmail.com</example:email>
-                    <example:LicenseKey>123</example:LicenseKey>
-                </example:VerifyEmail>
-            </SOAP-ENV:Body>
-        </SOAP-ENV:Envelope>
-         */
-
-        // SOAP Body
-        //SOAPBody soapBody = envelope.getBody();
-        //SOAPElement soapBodyElem = soapBody.addChildElement("BillDetailsRequest", "bil");
-        //SOAPElement soapBodyElem1 = soapBodyElem.addChildElement("lastName", "bil");
+        envelope.addNamespaceDeclaration("web", serverURI);
         String lastName=XMLElementExtractor.extractXmlElementValue(value, "lastName");
         //soapBodyElem1.addTextNode(lastName);
         //SOAPElement soapBodyElem2 = soapBodyElem.addChildElement("memberShipNumber", "bil");
-        String membership=XMLElementExtractor.extractXmlElementValue(value, "memberShipNumber");
+        String email=XMLElementExtractor.extractXmlElementValue(value, "email");
         //soapBodyElem2.addTextNode(membership);
         //SOAPElement soapBodyElem3 = soapBodyElem.addChildElement("roomNumber", "bil");
         String room=XMLElementExtractor.extractXmlElementValue(value, "roomNumber");
         //soapBodyElem3.addTextNode(room);
         
         System.out.println("****************");
-        System.out.println(lastName+","+membership+","+room);
+        System.out.println(lastName+","+email+","+room);
         System.out.println("****************");
         
         SOAPBody soapBody = envelope.getBody();
-        SOAPElement soapBodyElem = soapBody.addChildElement("BillDetailsRequest", "bil");
-        SOAPElement soapBodyElem1 = soapBodyElem.addChildElement("lastName", "bil");
+        SOAPElement soapBodyElem = soapBody.addChildElement("getBillInfo", "web");
+        SOAPElement soapBodyElem1 = soapBodyElem.addChildElement("lastName");
         soapBodyElem1.addTextNode(lastName);
-        SOAPElement soapBodyElem2 = soapBodyElem.addChildElement("memberShipNumber", "bil");
-        soapBodyElem2.addTextNode(membership);
-        SOAPElement soapBodyElem3 = soapBodyElem.addChildElement("roomNumber", "bil");
+        SOAPElement soapBodyElem2 = soapBodyElem.addChildElement("email");
+        soapBodyElem2.addTextNode(email);
+        SOAPElement soapBodyElem3 = soapBodyElem.addChildElement("roomNumber");
         soapBodyElem3.addTextNode(room);
 
         MimeHeaders headers = soapMessage.getMimeHeaders();
-        headers.addHeader("SOAPAction", serverURI  + "BillDetailsRequest");
+        headers.addHeader("SOAPAction", serverURI  + "getBillInfo");
 
         soapMessage.saveChanges();
 
@@ -152,7 +136,7 @@ public class DynamicRouteProcessor implements Processor{
         StringWriter writer = new StringWriter();
         transformer.transform(sourceContent, new StreamResult(writer));
         String output = writer.toString();
-        int ind = output.indexOf("<SOAP");
+        int ind = output.indexOf("<S");
         System.out.println("NOW IS: "+output.substring(ind));
         return output;
     }
