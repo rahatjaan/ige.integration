@@ -1,6 +1,6 @@
 package ige.integration.audit;
 
-import ige.integration.constants.Constants;
+import ige.integration.constants.DataSource;
 
 
 //import org.apache.log4j.Logger;
@@ -32,7 +32,7 @@ public class AuditTrail {
      * @param requestPayload
      * @param responsePayload
      */
-    public synchronized  void updateAuditTrial(String createdBy, String createdDate, String actionDescription, String actionResult, String userName, String tenantId, String requestPayload, String responsePayload, Constants dataSource) {
+    public synchronized  void updateAuditTrial(String createdBy, String createdDate, String actionDescription, String actionResult, String userName, String tenantId, String requestPayload, String responsePayload, DataSource dataSource) {
         AuditTrailDAO auditTrailDAO = new AuditTrailDAO();
         AuditLogs auditlogs = new AuditLogs(createdBy, createdDate, actionDescription, actionResult, userName, tenantId, requestPayload, responsePayload);
         try {

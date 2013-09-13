@@ -1,6 +1,6 @@
 package ige.integration.service;
 
-import ige.integration.constants.Constants;
+import ige.integration.constants.DataSource;
 import ige.integration.model.TenantInfo;
 
 import java.sql.Connection;
@@ -11,11 +11,11 @@ import java.sql.ResultSet;
 import com.mysql.jdbc.Statement;
 
 public class PopulateTenantInfo {
-	private Constants dataSource;
-	public Constants getDataSource() {
+	private DataSource dataSource;
+	public DataSource getDataSource() {
 		return dataSource;
 	}
-	public void setDataSource(Constants dataSource) {
+	public void setDataSource(DataSource dataSource) {
 		this.dataSource = dataSource;
 	}
 	Connection connection;

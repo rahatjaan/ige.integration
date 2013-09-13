@@ -1,6 +1,6 @@
 package ige.integration.audit;
 
-import ige.integration.constants.Constants;
+import ige.integration.constants.DataSource;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -12,7 +12,7 @@ public class AuditTrailDAO {
 	Connection connection;
 	Statement statement;
 	PreparedStatement preparedStatement;
-	public void addAuditTrail(final AuditLogs auditlog, Constants dataSource) {
+	public void addAuditTrail(final AuditLogs auditlog, DataSource dataSource) {
         //Add Database Logic here.
     	//JdbcTemplate jdbc = new JdbcTemplate(dataSource);
 		try{

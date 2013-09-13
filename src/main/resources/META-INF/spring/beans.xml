@@ -12,15 +12,17 @@
       http://www.springframework.org/schema/osgi-compendium http://www.springframework.org/schema/osgi-compendium/spring-osgi-compendium.xsd">
       
       
-      <bean id="myDataSource" class="ige.integration.constants.Constants">
+      <bean id="myDataSource" class="ige.integration.constants.DataSource">
       	<property name="DATABASE" value="camel"/>
       	<property name="PORT" value="3306"/>
       	<property name="HOST" value="localhost"/>
       	<property name="USER" value="servicemix"/>
-      	<property name="PASS" value="cyber8T0ken"/><!-- 
-      	<property name="USER" value="root"/>
+      	<property name="PASS" value="cyber8T0ken"/>
+      	<!-- <property name="USER" value="root"/>
       	<property name="PASS" value="root"/> -->
       </bean>
+      
+      
 
   <bean id="dataBean" class="ige.integration.utils.DataBean" />
 	<bean id="placeOrderBean" class="ige.integration.model.InRoomOrder" />

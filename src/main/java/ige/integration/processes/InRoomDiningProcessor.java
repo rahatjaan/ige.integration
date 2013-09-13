@@ -1,7 +1,7 @@
 package ige.integration.processes;
 
 import ige.integration.audit.AuditTrail;
-import ige.integration.constants.Constants;
+import ige.integration.constants.DataSource;
 import ige.integration.model.InRoomOrderPayLoad;
 import ige.integration.model.TenantInfo;
 import ige.integration.utils.XMLElementExtractor;
@@ -17,14 +17,14 @@ import org.apache.camel.Processor;
 import com.mysql.jdbc.Statement;
 
 public class InRoomDiningProcessor implements Processor {
-	private Constants dataSource;
+	private DataSource dataSource;
 	//private static final org.apache.log4j.Logger LOGGER = Logger.getLogger(InRoomDiningProcessor.class.getName());
 
-	public Constants getDataSource() {
+	public DataSource getDataSource() {
 		return dataSource;
 	}
 
-	public void setDataSource(Constants dataSource) {
+	public void setDataSource(DataSource dataSource) {
 		this.dataSource = dataSource;
 	}
 

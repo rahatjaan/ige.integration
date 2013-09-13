@@ -1,9 +1,9 @@
 package ige.integration.router;
 
+import ige.integration.constants.Constants;
 import ige.integration.exception.CustomExceptionProcessor;
 import ige.integration.processes.DynamicRouteProcessor;
 import ige.integration.processes.JMSProcessor;
-import ige.integration.processes.PlaceOrderRouteProcessor;
 import ige.integration.processes.RestProcessor;
 
 import java.io.IOException;
@@ -30,23 +30,57 @@ public class IntegrationRouteBuilder extends RouteBuilder {
 	
 	public void configure() {
 
-		igeGetBillInfo();
+		onException(Exception.class,IOException.class).handled(true).process(new CustomExceptionProcessor());
+		guestCheckIn();
 		pmsPlaceOrder();
+		igeGetBillInfo();
 		jmsInFlow();//test flow to receive message, mocking as POS inbound endpoint
 		//guestCheckInFlow();
-	}/*
+	}
 	
-	private void guestCheckInFlow() {
-		from("jetty:http://localhost:8181/RestConsumer/placeOrder")
+	private void guestCheckIn() {
+		Map<String, String> xmlJsonOptions = new HashMap<String, String>();
+		xmlJsonOptions.put(org.apache.camel.model.dataformat.XmlJsonDataFormat.ENCODING, "UTF-8");
+		xmlJsonOptions.put(org.apache.camel.model.dataformat.XmlJsonDataFormat.ROOT_NAME, "guestStayInfos");
+		xmlJsonOptions.put(org.apache.camel.model.dataformat.XmlJsonDataFormat.FORCE_TOP_LEVEL_OBJECT, "true");
+		xmlJsonOptions.put(org.apache.camel.model.dataformat.XmlJsonDataFormat.SKIP_NAMESPACES, "true");
+		xmlJsonOptions.put(org.apache.camel.model.dataformat.XmlJsonDataFormat.REMOVE_NAMESPACE_PREFIXES, "true");
+		xmlJsonOptions.put(org.apache.camel.model.dataformat.XmlJsonDataFormat.EXPANDABLE_PROPERTIES, "d e");
+
+		
+		from("jetty:http://0.0.0.0:8888/guestCheckIn")
 		.unmarshal().xmljson()	
 		.beanRef("inRoomDiningProcessor")	
+		.choice()
+		.when(simple("${in.body.tenant.outboundType} == '404'"))
+		.beanRef("responseProcessor")
+		.when(simple("${in.body.tenant.outboundType} == '1'"))
 		.setHeader("OutboundUrl").simple("${in.body.tenant.outboundUrl}")
+		.setHeader("flow").constant(Constants.GUESTCHECKIN)
 		.setHeader("CamelHttpMethod").constant("POST")
 		.setHeader("Content-Type").constant("application/x-www-form-urlencoded")
 		.setBody(simple("payload=${in.body}"))
-		.to("http://localhost:8080/POSMockup/guestcheckin");
+		//.to("http://localhost:8080/POSMockup/InRoomDining")
+		.process(new DynamicRouteProcessor())
+		.marshal().xmljson(xmlJsonOptions)
+		.process(new Processor(){
+			public void process(Exchange arg0) throws Exception {
+				System.out.println(arg0.getIn().getBody().toString());
+			}
+		})
+		//.to("uri:"+simple("${in.body.tenant.outboundUrl}"))
+		.when(simple("${in.body.tenant.outboundType} == '2'"))
+		.setBody(this.body())
+		.to("jms:orders")
+		.when(simple("${in.body.tenant.outboundType} == '3'"))
+		.setHeader("subject", constant("TEST"))
+		.to("smtp://" + HOSTNAME + ":" + PORT + "?password=" + PASSWORD
+				+ "&username=" + USERNAME + "&from=" + FROM + "&to="
+				+ TO + "&mail.smtp.starttls.enable=true")
+		.otherwise()
+		.beanRef("responseProcessor");
 		
-	}*/
+	}
 
 	
 	private void igeGetBillInfo() {
@@ -61,7 +95,7 @@ public class IntegrationRouteBuilder extends RouteBuilder {
 		xmlJsonOptions.put(org.apache.camel.model.dataformat.XmlJsonDataFormat.REMOVE_NAMESPACE_PREFIXES, "true");
 		xmlJsonOptions.put(org.apache.camel.model.dataformat.XmlJsonDataFormat.EXPANDABLE_PROPERTIES, "d e");
 
-		onException(Exception.class,IOException.class).handled(true).process(new CustomExceptionProcessor());
+		
 		from("jetty:http://0.0.0.0:8888/getBillInfo")
 		.unmarshal().xmljson()	
 		.beanRef("inRoomDiningProcessor")	
@@ -70,6 +104,7 @@ public class IntegrationRouteBuilder extends RouteBuilder {
 		.beanRef("responseProcessor")
 		.when(simple("${in.body.tenant.outboundType} == '1'"))
 		.setHeader("OutboundUrl").simple("${in.body.tenant.outboundUrl}")
+		.setHeader("flow").constant(Constants.GUESTBILLINFO)
 		.setHeader("CamelHttpMethod").constant("POST")
 		.setHeader("Content-Type").constant("application/x-www-form-urlencoded")
 		.setBody(simple("payload=${in.body}"))
@@ -104,9 +139,15 @@ public class IntegrationRouteBuilder extends RouteBuilder {
 	}
 	
 	private void pmsPlaceOrder() {
-		//onException(Exception.class,IOException.class).handled(true).process(new CustomExceptionProcessor());
-		//from("restlet:/placeOrder?restletMethod=POST")
-		//from("direct:start")
+		Map<String, String> xmlJsonOptions = new HashMap<String, String>();
+		xmlJsonOptions.put(org.apache.camel.model.dataformat.XmlJsonDataFormat.ENCODING, "UTF-8");
+		xmlJsonOptions.put(org.apache.camel.model.dataformat.XmlJsonDataFormat.ROOT_NAME, "guestTransactionsInfos");
+		xmlJsonOptions.put(org.apache.camel.model.dataformat.XmlJsonDataFormat.FORCE_TOP_LEVEL_OBJECT, "true");
+		xmlJsonOptions.put(org.apache.camel.model.dataformat.XmlJsonDataFormat.SKIP_NAMESPACES, "true");
+		xmlJsonOptions.put(org.apache.camel.model.dataformat.XmlJsonDataFormat.REMOVE_NAMESPACE_PREFIXES, "true");
+		xmlJsonOptions.put(org.apache.camel.model.dataformat.XmlJsonDataFormat.EXPANDABLE_PROPERTIES, "d e");
+
+		
 		from("jetty:http://0.0.0.0:8888/placeOrder")
 		.unmarshal().xmljson()	
 		.beanRef("inRoomDiningProcessor")	
@@ -115,17 +156,18 @@ public class IntegrationRouteBuilder extends RouteBuilder {
 		.beanRef("responseProcessor")
 		.when(simple("${in.body.tenant.outboundType} == '1'"))
 		.setHeader("OutboundUrl").simple("${in.body.tenant.outboundUrl}")
+		.setHeader("flow").constant(Constants.GUESTPLACEORDER)
 		.setHeader("CamelHttpMethod").constant("POST")
 		.setHeader("Content-Type").constant("application/x-www-form-urlencoded")
 		.setBody(simple("payload=${in.body}"))
 		//.to("http://localhost:8080/POSMockup/InRoomDining")
-		.process(new PlaceOrderRouteProcessor())/*
-		.marshal().xmljson()
+		.process(new DynamicRouteProcessor())
+		.marshal().xmljson(xmlJsonOptions)
 		.process(new Processor(){
 			public void process(Exchange arg0) throws Exception {
 				System.out.println(arg0.getIn().getBody().toString());
 			}
-		})*/
+		})
 		//.to("uri:"+simple("${in.body.tenant.outboundUrl}"))
 		.when(simple("${in.body.tenant.outboundType} == '2'"))
 		.setBody(this.body())
