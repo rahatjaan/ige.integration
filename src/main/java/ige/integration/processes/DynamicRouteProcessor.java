@@ -73,12 +73,14 @@ public class DynamicRouteProcessor implements Processor{
             	soapResponse = soapConnection.call(createSOAPRequestForGuestCheckIn(req), url);
             }else if(Constants.GUESTPLACEORDER.equalsIgnoreCase(flow)){
             	soapResponse = soapConnection.call(createSOAPRequestForPlaceOrder(req), url);
+            }else if(Constants.GUESTCHECKOUT.equalsIgnoreCase(flow)){
+            	soapResponse = soapConnection.call(createSOAPRequestForGuestCheckOut(req), url);
             }
 
             // Process the SOAP Response
             String message = printSOAPResponse(soapResponse);
             String body = "";
-            if(Constants.GUESTBILLINFO.equalsIgnoreCase(flow)){
+            if(Constants.GUESTBILLINFO.equalsIgnoreCase(flow) || Constants.GUESTCHECKOUT.equalsIgnoreCase(flow)){
             	body = BillDetailsTransformer.transform(message);
             }else if(Constants.GUESTCHECKIN.equalsIgnoreCase(flow)){
             	body = GuestCheckInTransformer.transform(message);
@@ -131,6 +133,52 @@ public class DynamicRouteProcessor implements Processor{
 
         MimeHeaders headers = soapMessage.getMimeHeaders();
         headers.addHeader("SOAPAction", serverURI  + "getBillInfo");
+
+        soapMessage.saveChanges();
+
+        /* Print the request message */
+        System.out.print("Request SOAP Message = ");
+        soapMessage.writeTo(System.out);
+        System.out.println();
+
+        return soapMessage;
+    }
+	
+	
+	private static SOAPMessage createSOAPRequestForGuestCheckOut(String value) throws Exception {
+        MessageFactory messageFactory = MessageFactory.newInstance();
+        SOAPMessage soapMessage = messageFactory.createMessage();
+        SOAPPart soapPart = soapMessage.getSOAPPart();
+
+        String serverURI = "http://webservice.integration.ige/";
+
+        // SOAP Envelope
+        SOAPEnvelope envelope = soapPart.getEnvelope();
+        envelope.addNamespaceDeclaration("web", serverURI);
+        String lastName=XMLElementExtractor.extractXmlElementValue(value, "lastName");
+        //soapBodyElem1.addTextNode(lastName);
+        //SOAPElement soapBodyElem2 = soapBodyElem.addChildElement("memberShipNumber", "bil");
+        String email=XMLElementExtractor.extractXmlElementValue(value, "email");
+        //soapBodyElem2.addTextNode(membership);
+        //SOAPElement soapBodyElem3 = soapBodyElem.addChildElement("roomNumber", "bil");
+        String cardNum=XMLElementExtractor.extractXmlElementValue(value, "creditCardNumber");
+        //soapBodyElem3.addTextNode(room);
+        
+        System.out.println("****************");
+        System.out.println(lastName+","+email+","+cardNum);
+        System.out.println("****************");
+        
+        SOAPBody soapBody = envelope.getBody();
+        SOAPElement soapBodyElem = soapBody.addChildElement("guestCheckout", "web");
+        SOAPElement soapBodyElem1 = soapBodyElem.addChildElement("lastName");
+        soapBodyElem1.addTextNode(lastName);
+        SOAPElement soapBodyElem2 = soapBodyElem.addChildElement("email");
+        soapBodyElem2.addTextNode(email);
+        SOAPElement soapBodyElem3 = soapBodyElem.addChildElement("creditCardNumber");
+        soapBodyElem3.addTextNode(cardNum);
+
+        MimeHeaders headers = soapMessage.getMimeHeaders();
+        headers.addHeader("SOAPAction", serverURI  + "guestCheckout");
 
         soapMessage.saveChanges();
 
