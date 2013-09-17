@@ -79,13 +79,20 @@ public class DynamicRouteProcessor implements Processor{
 
             // Process the SOAP Response
             String message = printSOAPResponse(soapResponse);
+            message = message.replaceAll("&lt;","<");
+            message = message.replaceAll("&gt;",">");
+            System.out.println("BEFORE TRANSFORMATION: "+message);
+            boolean flag = false;
+            if(message.contains("<faultcode>")){
+            	flag = true;
+            }
             String body = "";
             if(Constants.GUESTBILLINFO.equalsIgnoreCase(flow) || Constants.GUESTCHECKOUT.equalsIgnoreCase(flow)){
-            	body = BillDetailsTransformer.transform(message);
+            	body = BillDetailsTransformer.transform(message,flag);
             }else if(Constants.GUESTCHECKIN.equalsIgnoreCase(flow)){
-            	body = GuestCheckInTransformer.transform(message);
+            	body = GuestCheckInTransformer.transform(message,flag);
             }else if(Constants.GUESTPLACEORDER.equalsIgnoreCase(flow)){
-            	body = GuestPlaceOrderTransformer.transform(message);
+            	body = GuestPlaceOrderTransformer.transform(message,flag);
             }
             soapConnection.close();
             arg0.getOut().setBody(body);
