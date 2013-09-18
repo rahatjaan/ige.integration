@@ -4,6 +4,7 @@ import ige.integration.constants.Constants;
 import ige.integration.transformer.BillDetailsTransformer;
 import ige.integration.transformer.GuestCheckInTransformer;
 import ige.integration.transformer.GuestPlaceOrderTransformer;
+import ige.integration.transformer.GuestTransactionsTransformer;
 import ige.integration.utils.XMLElementExtractor;
 
 import java.io.StringWriter;
@@ -87,12 +88,14 @@ public class DynamicRouteProcessor implements Processor{
             	flag = true;
             }
             String body = "";
-            if(Constants.GUESTBILLINFO.equalsIgnoreCase(flow) || Constants.GUESTCHECKOUT.equalsIgnoreCase(flow)){
+            if(Constants.GUESTBILLINFO.equalsIgnoreCase(flow)){
             	body = BillDetailsTransformer.transform(message,flag);
             }else if(Constants.GUESTCHECKIN.equalsIgnoreCase(flow)){
             	body = GuestCheckInTransformer.transform(message,flag);
             }else if(Constants.GUESTPLACEORDER.equalsIgnoreCase(flow)){
             	body = GuestPlaceOrderTransformer.transform(message,flag);
+            }else if(Constants.GUESTCHECKOUT.equalsIgnoreCase(flow)){
+            	body = GuestTransactionsTransformer.transform(message,flag);
             }
             soapConnection.close();
             arg0.getOut().setBody(body);
@@ -169,10 +172,11 @@ public class DynamicRouteProcessor implements Processor{
         //soapBodyElem2.addTextNode(membership);
         //SOAPElement soapBodyElem3 = soapBodyElem.addChildElement("roomNumber", "bil");
         String cardNum=XMLElementExtractor.extractXmlElementValue(value, "creditCardNumber");
+        String roomNum=XMLElementExtractor.extractXmlElementValue(value, "roomNumber");
         //soapBodyElem3.addTextNode(room);
         
         System.out.println("****************");
-        System.out.println(lastName+","+email+","+cardNum);
+        System.out.println(lastName+","+email+","+cardNum+","+roomNum);
         System.out.println("****************");
         
         SOAPBody soapBody = envelope.getBody();
@@ -183,6 +187,8 @@ public class DynamicRouteProcessor implements Processor{
         soapBodyElem2.addTextNode(email);
         SOAPElement soapBodyElem3 = soapBodyElem.addChildElement("creditCardNumber");
         soapBodyElem3.addTextNode(cardNum);
+        SOAPElement soapBodyElem4 = soapBodyElem.addChildElement("roomNumber");
+        soapBodyElem4.addTextNode(roomNum);
 
         MimeHeaders headers = soapMessage.getMimeHeaders();
         headers.addHeader("SOAPAction", serverURI  + "guestCheckout");

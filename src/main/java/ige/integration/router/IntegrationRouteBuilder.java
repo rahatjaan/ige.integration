@@ -30,7 +30,7 @@ public class IntegrationRouteBuilder extends RouteBuilder {
 	
 	public void configure() {
 
-		onException(Exception.class,IOException.class).handled(true).process(new CustomExceptionProcessor());
+		//onException(Exception.class,IOException.class).handled(true).process(new CustomExceptionProcessor());
 		guestCheckIn();
 		pmsPlaceOrder();
 		igeGetBillInfo();

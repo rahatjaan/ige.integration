@@ -1,5 +1,7 @@
 package ige.integration.transformer;
 
+import ige.integration.reporting.GenerateReport;
+
 import java.io.IOException;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -26,6 +28,7 @@ public class BillDetailsTransformer {
 			message = message.substring(ind1);
 			message = "<guestInfos>"+message+"</guestInfos>";
 			System.out.println("Message is: "+message);
+			//new GenerateReport().generateReport(message);
 		}
 		return message;
 	}
