@@ -4,7 +4,6 @@ import ige.integration.datasource.TransactionDataSource;
 import ige.integration.utils.XMLElementExtractor;
 
 import java.io.BufferedInputStream;
-import java.io.File;
 import java.io.FileInputStream;
 import java.util.HashMap;
 
@@ -19,20 +18,21 @@ import net.sf.jasperreports.engine.util.JRLoader;
 public class GenerateReport {
 	public static void main(String[] args){
 		String val = "<guestInfos><id>1</id><firstName>Rahat</firstName><lastName>Ali</lastName><fullAddress>Islamabad</fullAddress><mobileNumber>12345</mobileNumber><ratePlan>rateplan</ratePlan><hhNumber>hhnumber</hhNumber><al>al</al><bonusAl>bonusal</bonusAl><confirmationNumber>confirmationnumber</confirmationNumber><email>rahat.jaan@gmail.com</email><membershipNumber>1</membershipNumber><bonusCode>bonuscode</bonusCode><groupName>groupname</groupName><guestStayInfos><id>1</id><roomNumber>123</roomNumber><floorNumber>32</floorNumber><arrivalDate>2013-10-12T00:00:00+05:00</arrivalDate><departureDate>2013-09-18T20:42:01.026+05:00</departureDate><folioNumber>folionumber</folioNumber><totalBill>745</totalBill><paymentType>paymenttype</paymentType><creditAmount>745</creditAmount><cardType>credittype</cardType><cardNumber>7777</cardNumber><balanceAmount>0</balanceAmount><roomType>roomtype</roomType><numberOfChildren>1</numberOfChildren><numberOfAdult>2</numberOfAdult><roomRate>59</roomRate><creditcardExpirationDate>2019-12-23T00:00:00+05:00</creditcardExpirationDate><rateCode>39</rateCode><reservationType>34</reservationType><checkedOut>true</checkedOut><guestTransactionses><id>3</id><transactionDate>2013-11-11T00:00:00+05:00</transactionDate><description>Testing1</description><referenceNumber>1</referenceNumber><transactionId>1</transactionId><charges>54</charges></guestTransactionses><guestTransactionses><id>4</id><transactionDate>2013-11-11T00:00:00+05:00</transactionDate><description>Testing2</description><referenceNumber>54</referenceNumber><transactionId>1</transactionId><charges>34</charges></guestTransactionses><guestTransactionses><id>1</id><transactionDate>2013-12-23T00:00:00+05:00</transactionDate><description>description</description><referenceNumber>referencenumber</referenceNumber><transactionId>234</transactionId><charges>234</charges></guestTransactionses><guestTransactionses><id>2</id><transactionDate>2013-11-11T00:00:00+05:00</transactionDate><description>asdf</description><referenceNumber>456</referenceNumber><transactionId>456</transactionId><charges>456</charges></guestTransactionses><guestTransactionses><id>7</id><transactionDate>2013-11-11T00:00:00+05:00</transactionDate><description>Testing1</description><referenceNumber>1</referenceNumber><transactionId>1</transactionId><charges>54</charges></guestTransactionses><guestTransactionses><id>8</id><transactionDate>2013-11-11T00:00:00+05:00</transactionDate><description>Testing2</description><referenceNumber/><transactionId>1</transactionId><charges>34</charges></guestTransactionses><guestTransactionses><id>5</id><transactionDate>2013-11-11T00:00:00+05:00</transactionDate><description>Testing1</description><referenceNumber>1</referenceNumber><transactionId>1</transactionId><charges>54</charges></guestTransactionses><guestTransactionses><id>6</id><transactionDate>2013-11-11T00:00:00+05:00</transactionDate><description>Testing2</description><referenceNumber/><transactionId>1</transactionId><charges>34</charges></guestTransactionses></guestStayInfos></guestInfos>";
-		new GenerateReport().generateReport(val);
+		new GenerateReport().generateReport(val,"");
 	}
-	public void generateReport(String xml){
+	public int generateReport(String xml, String filePath){
 		JasperReport jasperReport = null;
 		JasperPrint jasperPrint = null;
 		HashMap<String,String> jasperParameter = null;
 		// Load the Jasper Report
 		try {
-			FileInputStream fis = new FileInputStream("C:\\Shakeel\\GitRepos\\Reports\\BillInformation.jasper");
+			FileInputStream fis = new FileInputStream(filePath+"BillInformation.jasper");
 			BufferedInputStream bufferedInputStream = new BufferedInputStream(fis);
 			jasperReport = (JasperReport) JRLoader.loadObject(bufferedInputStream);
 			//jasperReport = JasperCompileManager.compileReport(ReportGeneration.inputPath+"\\OrdersReport.jrxml");
-		} catch (Exception e2) {
+		} catch (Exception e2) {			
 			e2.printStackTrace();
+			return 0;
 		}
 		
 		int ind1 = xml.indexOf("<guestInfo");
@@ -48,7 +48,7 @@ public class GenerateReport {
 		String guestTransactions = xml.substring(ind1,ind2);
 		
 		jasperParameter = new HashMap<String,String>();
-		String imagePath = "C:\\Users\\IBM_ADMIN\\Desktop\\logo.png";
+		String imagePath = filePath+"logo.png";
 		jasperParameter.put("imagePath", imagePath);
 		jasperParameter.put("tenantName", "TEMPORARY TENANT NAME");
 		jasperParameter.put("tenantAddress", "TEMPORARY TENANT ADDRESS. SHOULD BE STORED IN DATABASE TO RETRIEVE");
@@ -90,11 +90,14 @@ public class GenerateReport {
 			jasperPrint = JasperFillManager.fillReport(jasperReport,jasperParameter, new JRTableModelDataSource(new TransactionDataSource(guestTransactions,cAm)));
 //			JasperFillManager.fillRep
 			//jasperPrint = JasperFillManager.fillReport(jasperReport,jasperParameter, new com.ReportEngine.Model.DataSource().establishConnection());
-			JasperExportManager.exportReportToPdfFile(jasperPrint, "C:\\Shakeel\\GitRepos\\Reports"+File.separator+"fileName"+".pdf");
+			JasperExportManager.exportReportToPdfFile(jasperPrint, filePath+"fileName"+".pdf");
 		} catch (JRException e1) {
 			e1.printStackTrace();
+			return 0;
 		} catch(Exception e){
 			e.printStackTrace();
+			return 0;
 		}
+		return 1;
 	}
 }

@@ -1,12 +1,9 @@
 package ige.integration.router;
 
 import ige.integration.constants.Constants;
-import ige.integration.exception.CustomExceptionProcessor;
-import ige.integration.processes.DynamicRouteProcessor;
 import ige.integration.processes.JMSProcessor;
 import ige.integration.processes.RestProcessor;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -35,6 +32,7 @@ public class IntegrationRouteBuilder extends RouteBuilder {
 		pmsPlaceOrder();
 		igeGetBillInfo();
 		guestCheckOut();
+		sendEmail();
 		jmsInFlow();//test flow to receive message, mocking as POS inbound endpoint
 		//guestCheckInFlow();
 	}
@@ -62,7 +60,8 @@ public class IntegrationRouteBuilder extends RouteBuilder {
 		.setHeader("Content-Type").constant("application/x-www-form-urlencoded")
 		.setBody(simple("payload=${in.body}"))
 		//.to("http://localhost:8080/POSMockup/InRoomDining")
-		.process(new DynamicRouteProcessor())
+		//.process(new DynamicRouteProcessor())
+		.beanRef("dynamicRouteBuilder")
 		.marshal().xmljson(xmlJsonOptions)
 		.process(new Processor(){
 			public void process(Exchange arg0) throws Exception {
@@ -110,7 +109,8 @@ public class IntegrationRouteBuilder extends RouteBuilder {
 		.setHeader("Content-Type").constant("application/x-www-form-urlencoded")
 		.setBody(simple("payload=${in.body}"))
 		//.to("http://localhost:8080/POSMockup/InRoomDining")
-		.process(new DynamicRouteProcessor())
+		//.process(new DynamicRouteProcessor())
+		.beanRef("dynamicRouteBuilder")
 		.marshal().xmljson(xmlJsonOptions)
 		.process(new Processor(){
 			public void process(Exchange arg0) throws Exception {
@@ -162,7 +162,8 @@ public class IntegrationRouteBuilder extends RouteBuilder {
 		.setHeader("Content-Type").constant("application/x-www-form-urlencoded")
 		.setBody(simple("payload=${in.body}"))
 		//.to("http://localhost:8080/POSMockup/InRoomDining")
-		.process(new DynamicRouteProcessor())
+		//.process(new DynamicRouteProcessor())
+		.beanRef("dynamicRouteBuilder")
 		.marshal().xmljson(xmlJsonOptions)
 		.process(new Processor(){
 			public void process(Exchange arg0) throws Exception {
@@ -208,7 +209,8 @@ public class IntegrationRouteBuilder extends RouteBuilder {
 		.setHeader("Content-Type").constant("application/x-www-form-urlencoded")
 		.setBody(simple("payload=${in.body}"))
 		//.to("http://localhost:8080/POSMockup/InRoomDining")
-		.process(new DynamicRouteProcessor())
+		//.process(new DynamicRouteProcessor())
+		.beanRef("dynamicRouteBuilder")
 		.marshal().xmljson(xmlJsonOptions)
 		.process(new Processor(){
 			public void process(Exchange arg0) throws Exception {
@@ -228,5 +230,48 @@ public class IntegrationRouteBuilder extends RouteBuilder {
 		.beanRef("responseProcessor");
 	}
 	
+	private void sendEmail() {
+		Map<String, String> xmlJsonOptions = new HashMap<String, String>();
+		xmlJsonOptions.put(org.apache.camel.model.dataformat.XmlJsonDataFormat.ENCODING, "UTF-8");
+		xmlJsonOptions.put(org.apache.camel.model.dataformat.XmlJsonDataFormat.ROOT_NAME, "sendEmail");
+		xmlJsonOptions.put(org.apache.camel.model.dataformat.XmlJsonDataFormat.FORCE_TOP_LEVEL_OBJECT, "true");
+		xmlJsonOptions.put(org.apache.camel.model.dataformat.XmlJsonDataFormat.SKIP_NAMESPACES, "true");
+		xmlJsonOptions.put(org.apache.camel.model.dataformat.XmlJsonDataFormat.REMOVE_NAMESPACE_PREFIXES, "true");
+		xmlJsonOptions.put(org.apache.camel.model.dataformat.XmlJsonDataFormat.EXPANDABLE_PROPERTIES, "d e");
+		
+		from("jetty:http://0.0.0.0:8888/sendEmail")
+		.unmarshal().xmljson()	
+		.beanRef("inRoomDiningProcessor")	
+		.choice()
+		.when(simple("${in.body.tenant.outboundType} == '404'"))
+		.beanRef("responseProcessor")
+		.when(simple("${in.body.tenant.outboundType} == '1'"))
+		.setHeader("OutboundUrl").simple("${in.body.tenant.outboundUrl}")
+		.setHeader("flow").constant(Constants.SENDEMAIL)
+		.setHeader("CamelHttpMethod").constant("POST")
+		.setHeader("Content-Type").constant("application/x-www-form-urlencoded")
+		.setBody(simple("payload=${in.body}"))
+		//.to("http://localhost:8080/POSMockup/InRoomDining")
+		//.process(new DynamicRouteProcessor())
+		.beanRef("dynamicRouteBuilder")
+		.marshal().xmljson()
+		.process(new Processor(){
+			public void process(Exchange arg0) throws Exception {
+				System.out.println(arg0.getIn().getBody().toString());
+			}
+		})
+		//.to("uri:"+simple("${in.body.tenant.outboundUrl}"))
+		.when(simple("${in.body.tenant.outboundType} == '2'"))
+		.setBody(this.body())
+		.to("jms:orders")
+		.when(simple("${in.body.tenant.outboundType} == '3'"))
+		.setHeader("subject", constant("TEST"))
+		.to("smtp://" + HOSTNAME + ":" + PORT + "?password=" + PASSWORD
+				+ "&username=" + USERNAME + "&from=" + FROM + "&to="
+				+ TO + "&mail.smtp.starttls.enable=true")
+		.otherwise()
+		.beanRef("responseProcessor");
+		
+	}
 	
 }

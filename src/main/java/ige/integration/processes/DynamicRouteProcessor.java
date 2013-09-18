@@ -1,6 +1,7 @@
 package ige.integration.processes;
 
 import ige.integration.constants.Constants;
+import ige.integration.constants.EmailSource;
 import ige.integration.transformer.BillDetailsTransformer;
 import ige.integration.transformer.GuestCheckInTransformer;
 import ige.integration.transformer.GuestPlaceOrderTransformer;
@@ -31,6 +32,18 @@ import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 
 public class DynamicRouteProcessor implements Processor{
+
+	private EmailSource emailSource;
+	
+	public EmailSource getEmailSource() {
+		return emailSource;
+	}
+
+
+	public void setEmailSource(EmailSource emailSource) {
+		this.emailSource = emailSource;
+	}
+
 
 	public void process(Exchange arg0) throws Exception {
 		// TODO Auto-generated method stub
@@ -68,7 +81,7 @@ public class DynamicRouteProcessor implements Processor{
             // Send SOAP Message to SOAP Server
             //String url = "http://ws.cdyne.com/emailverify/Emailvernotestemail.asmx";
             SOAPMessage soapResponse = null;
-            if(Constants.GUESTBILLINFO.equalsIgnoreCase(flow)){
+            if(Constants.GUESTBILLINFO.equalsIgnoreCase(flow) || Constants.SENDEMAIL.equalsIgnoreCase(flow)){
             	soapResponse = soapConnection.call(createSOAPRequestForGuestBillInfo(req), url);
             }else if(Constants.GUESTCHECKIN.equalsIgnoreCase(flow)){
             	soapResponse = soapConnection.call(createSOAPRequestForGuestCheckIn(req), url);
@@ -88,8 +101,12 @@ public class DynamicRouteProcessor implements Processor{
             	flag = true;
             }
             String body = "";
-            if(Constants.GUESTBILLINFO.equalsIgnoreCase(flow)){
-            	body = BillDetailsTransformer.transform(message,flag);
+            if(Constants.GUESTBILLINFO.equalsIgnoreCase(flow) || Constants.SENDEMAIL.equalsIgnoreCase(flow)){
+            	boolean sendEmail = false;
+            	if(Constants.SENDEMAIL.equalsIgnoreCase(flow)){
+            		sendEmail = true;
+            	}
+            	body = BillDetailsTransformer.transform(message,flag,sendEmail,emailSource);
             }else if(Constants.GUESTCHECKIN.equalsIgnoreCase(flow)){
             	body = GuestCheckInTransformer.transform(message,flag);
             }else if(Constants.GUESTPLACEORDER.equalsIgnoreCase(flow)){

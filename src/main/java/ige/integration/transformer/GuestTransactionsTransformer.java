@@ -1,7 +1,5 @@
 package ige.integration.transformer;
 
-import ige.integration.reporting.GenerateReport;
-
 import java.io.IOException;
 
 import javax.xml.parsers.ParserConfigurationException;

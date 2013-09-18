@@ -1,7 +1,11 @@
 package ige.integration.transformer;
 
+import ige.integration.constants.EmailSource;
 import ige.integration.reporting.GenerateReport;
+import ige.integration.utils.SendEmail;
+import ige.integration.utils.XMLElementExtractor;
 
+import java.io.File;
 import java.io.IOException;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -9,7 +13,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.xml.sax.SAXException;
 
 public class BillDetailsTransformer {
-	public static String transform(String message, boolean flag) throws ParserConfigurationException, SAXException, IOException{
+	public static String transform(String message, boolean flag, boolean sendEmail, EmailSource emailS) throws ParserConfigurationException, SAXException, IOException{
 		if(flag){
 			int ind1 = message.indexOf("<soap:Fault");
 			int ind2 = message.indexOf("</soap:Fault>");
@@ -27,6 +31,30 @@ public class BillDetailsTransformer {
 			System.out.println("INDEX: "+ind1);
 			message = message.substring(ind1);
 			message = "<guestInfos>"+message+"</guestInfos>";
+			String toEmail = XMLElementExtractor.extractXmlElementValue(message, "email");
+			if(sendEmail){
+				if(null == toEmail || "".equalsIgnoreCase(toEmail.trim())){
+					message = "<Email><Error>Guest Email Address is not found.</Error></Email>";
+				}else{
+					//First Generate Report
+					if(1 == new GenerateReport().generateReport(message,emailS.getFILE_PATH())){
+						if(1 == new SendEmail().sendEmail(emailS.getHOST(), emailS.getFROM_EMAIL(), toEmail, emailS.getPASS(), emailS.getPORT(), emailS.getFILE_PATH()+"fileName.pdf", emailS.getSUBJECT(), emailS.getMESSAGE())){
+							message = "<Email><Success>Email sent with attached report.</Success></Email>";
+						}else{
+							message = "<Email><Error>Email can not be sent now. Please try later.</Error></Email>";
+						}
+					}else{
+						message = "<Report><Error>Report can not be generated now. Please try later.</Error></Report>";
+					}
+				}
+			}
+			File file = new File(emailS.getFILE_PATH()+"fileName.pdf");
+			 
+    		if(file.delete()){
+    			System.out.println(file.getName() + " is deleted!");
+    		}else{
+    			System.out.println("Delete operation is failed.");
+    		}
 			System.out.println("Message is: "+message);
 			//new GenerateReport().generateReport(message);
 		}
