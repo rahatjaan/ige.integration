@@ -7,6 +7,7 @@ import ige.integration.utils.XMLElementExtractor;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Date;
 
 import javax.xml.parsers.ParserConfigurationException;
 
@@ -32,13 +33,19 @@ public class BillDetailsTransformer {
 			message = message.substring(ind1);
 			message = "<guestInfos>"+message+"</guestInfos>";
 			String toEmail = XMLElementExtractor.extractXmlElementValue(message, "email");
+			System.out.println(message);
+			//System.exit(-1);
+			String fileDateName = new Date().toString();
+			fileDateName = fileDateName.replaceAll(" ","-");
+			String myFilename = emailS.getFILE_PATH()+XMLElementExtractor.extractXmlElementValue(message, "firstName")+"-"+XMLElementExtractor.extractXmlElementValue(message, "lastName")+"-"+XMLElementExtractor.extractXmlElementValue(message, "roomNumber")+"-"+fileDateName+".pdf";
 			if(sendEmail){
 				if(null == toEmail || "".equalsIgnoreCase(toEmail.trim())){
 					message = "<Email><Error>Guest Email Address is not found.</Error></Email>";
 				}else{
 					//First Generate Report
-					if(1 == new GenerateReport().generateReport(message,emailS.getFILE_PATH())){
-						if(1 == new SendEmail().sendEmail(emailS.getHOST(), emailS.getFROM_EMAIL(), toEmail, emailS.getPASS(), emailS.getPORT(), emailS.getFILE_PATH()+"fileName.pdf", emailS.getSUBJECT(), emailS.getMESSAGE())){
+					
+					if(1 == new GenerateReport().generateReport(message,myFilename,emailS.getFILE_PATH())){
+						if(1 == new SendEmail().sendEmail(emailS.getHOST(), emailS.getFROM_EMAIL(), toEmail, emailS.getPASS(), emailS.getPORT(), myFilename, emailS.getSUBJECT(), emailS.getMESSAGE())){
 							message = "<Email><Success>Email sent with attached report.</Success></Email>";
 						}else{
 							message = "<Email><Error>Email can not be sent now. Please try later.</Error></Email>";
@@ -48,7 +55,7 @@ public class BillDetailsTransformer {
 					}
 				}
 			}
-			File file = new File(emailS.getFILE_PATH()+"fileName.pdf");
+			File file = new File(myFilename);
 			 
     		if(file.delete()){
     			System.out.println(file.getName() + " is deleted!");

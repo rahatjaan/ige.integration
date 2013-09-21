@@ -1,9 +1,11 @@
 package ige.integration.router;
 
 import ige.integration.constants.Constants;
+import ige.integration.exception.CustomExceptionProcessor;
 import ige.integration.processes.JMSProcessor;
 import ige.integration.processes.RestProcessor;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -27,7 +29,7 @@ public class IntegrationRouteBuilder extends RouteBuilder {
 	
 	public void configure() {
 
-		//onException(Exception.class,IOException.class).handled(true).process(new CustomExceptionProcessor());
+		onException(Exception.class,IOException.class).handled(true).process(new CustomExceptionProcessor());
 		guestCheckIn();
 		pmsPlaceOrder();
 		igeGetBillInfo();

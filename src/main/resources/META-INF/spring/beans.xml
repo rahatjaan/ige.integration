@@ -27,7 +27,7 @@
       	<property name="HOST" value="smtp.gmail.com"/>
       	<property name="FROM_EMAIL" value="igeintegration@gmail.com"/>
       	<property name="PASS" value="rahat547"/>
-      	<property name="SUBJECT" value="SUBJECT"/>
+      	<property name="SUBJECT" value="Bill Details"/>
       	<property name="MESSAGE" value="MESSAGE"/>
       	<property name="FILE_PATH" value="/root/downloads/"/>
       </bean>

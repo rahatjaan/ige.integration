@@ -15,14 +15,15 @@ public class TransactionDataSource extends AbstractReportDataSource {
         super(new String[]{"transactionDate", "transactionDescription", "transactionCharges", "credits"});
     }
 	
-	public TransactionDataSource(String xml,String cA) {
+	public TransactionDataSource(String xml,String cA, String depDa) {
         super(new String[]{"transactionDate", "transactionDescription", "transactionCharges", "credits"});
-        setTransaction(xml,cA);
+        setTransaction(xml,cA, depDa);
     }
 
-    private void setTransaction(String xml,String creditAmount){
+    private void setTransaction(String xml,String creditAmount, String depDa){
         ArrayList<Row> rows = new ArrayList<Row>();
         String val = xml;
+        System.out.println("GGGGGGGGG: "+val.indexOf("<guestTransactionses>"));
         while(-1 != val.indexOf("<guestTransactionses>")){
         	int ind1 = val.indexOf("<guestTransactionses>");
         	int ind2 = val.indexOf("</guestTransactionses>");
@@ -37,7 +38,12 @@ public class TransactionDataSource extends AbstractReportDataSource {
         	Row row = new Row(dd, XMLElementExtractor.extractXmlElementValue(v, "description"), XMLElementExtractor.extractXmlElementValue(v, "charges"), XMLElementExtractor.extractXmlElementValue(v, "credits"));
             rows.add(row);
         }
-        Row row = new Row("2013-09-17", "Credited Amount:", null, creditAmount);
+        Row row = null;
+		if(null != xml && xml.length() > 0){
+        	row = new Row(depDa, "Credited Amount:", null, creditAmount);
+		}else{
+			row = new Row(null, "-", null, null);
+		}
         rows.add(row);
         setRows(rows);
     }
