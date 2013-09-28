@@ -2,8 +2,10 @@ package ige.integration.processes;
 
 import ige.integration.audit.AuditTrail;
 import ige.integration.constants.DataSource;
+import ige.integration.constants.EmailSource;
 import ige.integration.model.InRoomOrderPayLoad;
 import ige.integration.model.TenantInfo;
+import ige.integration.utils.SendEmail;
 import ige.integration.utils.XMLElementExtractor;
 
 import java.sql.Connection;
@@ -18,7 +20,16 @@ import com.mysql.jdbc.Statement;
 
 public class InRoomDiningProcessor implements Processor {
 	private DataSource dataSource;
+	private EmailSource emailSource;
 	//private static final org.apache.log4j.Logger LOGGER = Logger.getLogger(InRoomDiningProcessor.class.getName());
+
+	public EmailSource getEmailSource() {
+		return emailSource;
+	}
+
+	public void setEmailSource(EmailSource emailSource) {
+		this.emailSource = emailSource;
+	}
 
 	public DataSource getDataSource() {
 		return dataSource;
@@ -55,6 +66,12 @@ public class InRoomDiningProcessor implements Processor {
 			InRoomOrderPayLoad payload = new InRoomOrderPayLoad(value,tenant);
 			return payload;
 		}catch(Exception e){
+			String mesg = "InRoomDiningProcessor: populateTenantInfo "+e.toString();
+            if(1 == new SendEmail().sendEmail(emailSource.getHOST(), emailSource.getFROM_EMAIL(), emailSource.getADMIN_EMAIL(), emailSource.getPASS(), emailSource.getPORT(), null, "Exception occured at InRoomDiningProcessor", mesg)){
+				exchange.getOut().setBody("<Message><Failure>An exception has occured. An email is sent to Admin.</Failure></Message>");
+			}else{
+				exchange.getOut().setBody("<Message><Failure>An exception has occured. Email sending to Admin failed too.</Failure></Message>");
+			}
 			exchange.getOut().setBody(e.toString());
 		}
 		return null;
@@ -92,6 +109,12 @@ public class InRoomDiningProcessor implements Processor {
 			}
 		}catch(Exception e){
 			e.printStackTrace();
+			String mesg = "InRoomDiningProcessor: getTenantInfo "+e.toString();
+            if(1 == new SendEmail().sendEmail(emailSource.getHOST(), emailSource.getFROM_EMAIL(), emailSource.getADMIN_EMAIL(), emailSource.getPASS(), emailSource.getPORT(), null, "Database Failure at InRoomDiningProcessor", mesg)){
+				//exchange.getOut().setBody("<Message><Failure>An exception has occured. An email is sent to Admin.</Failure></Message>");
+			}else{
+				//exchange.getOut().setBody("<Message><Failure>An exception has occured. Email sending to Admin failed too.</Failure></Message>");
+			}
 		}
 			return info;
 	}

@@ -37,7 +37,10 @@ public class BillDetailsTransformer {
 			//System.exit(-1);
 			String fileDateName = new Date().toString();
 			fileDateName = fileDateName.replaceAll(" ","-");
+			//String fp = "C:\\\\Shakeel\\GitRepos\\Reports\\";
 			String myFilename = emailS.getFILE_PATH()+XMLElementExtractor.extractXmlElementValue(message, "firstName")+"-"+XMLElementExtractor.extractXmlElementValue(message, "lastName")+"-"+XMLElementExtractor.extractXmlElementValue(message, "roomNumber")+"-"+fileDateName+".pdf";
+			//String myFilename = fp+XMLElementExtractor.extractXmlElementValue(message, "firstName")+"-"+XMLElementExtractor.extractXmlElementValue(message, "lastName")+"-"+XMLElementExtractor.extractXmlElementValue(message, "roomNumber")+"-"+fileDateName+".pdf";
+			myFilename = myFilename.replaceAll(":","");
 			if(sendEmail){
 				if(null == toEmail || "".equalsIgnoreCase(toEmail.trim())){
 					message = "<Email><Error>Guest Email Address is not found.</Error></Email>";

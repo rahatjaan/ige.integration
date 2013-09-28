@@ -30,6 +30,7 @@ public class IntegrationRouteBuilder extends RouteBuilder {
 	public void configure() {
 
 		onException(Exception.class,IOException.class).handled(true).process(new CustomExceptionProcessor());
+		test();
 		guestCheckIn();
 		pmsPlaceOrder();
 		igeGetBillInfo();
@@ -37,6 +38,15 @@ public class IntegrationRouteBuilder extends RouteBuilder {
 		sendEmail();
 		jmsInFlow();//test flow to receive message, mocking as POS inbound endpoint
 		//guestCheckInFlow();
+	}
+	
+	private void test(){
+		/*from("jetty:http://0.0.0.0:8888/guestCheckIn")
+		  .setHeader(Exchange.HTTP_METHOD, constant("POST"))
+		  .setBody()
+		.setHeader(Exchange.HTTP_METHOD, constant("POST"))
+		
+		.to("jetty:http://localhost:8080/RestIGEBackEnd/ws/restservice/guestCheckin");*/
 	}
 	
 	private void guestCheckIn() {

@@ -1,8 +1,10 @@
 package ige.integration.processes;
 
 import ige.integration.constants.DataSource;
+import ige.integration.constants.EmailSource;
 import ige.integration.model.InRoomOrderPayLoad;
 import ige.integration.model.TenantInfo;
+import ige.integration.utils.SendEmail;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -17,7 +19,18 @@ import com.mysql.jdbc.Statement;
 public class IntegrationProcessor implements Processor {
 	
 	private DataSource dataSource;
+	private EmailSource emailSource;
 	
+	public EmailSource getEmailSource() {
+		return emailSource;
+	}
+
+
+	public void setEmailSource(EmailSource emailSource) {
+		this.emailSource = emailSource;
+	}
+
+
 	public DataSource getDataSource() {
 		return dataSource;
 	}
@@ -73,6 +86,12 @@ public class IntegrationProcessor implements Processor {
 				}
 			}catch(Exception e){
 				e.printStackTrace();
+				String mesg = "IntegrationProcessor: getTenantInfo "+e.toString();
+	            if(1 == new SendEmail().sendEmail(emailSource.getHOST(), emailSource.getFROM_EMAIL(), emailSource.getADMIN_EMAIL(), emailSource.getPASS(), emailSource.getPORT(), null, "Exception occured at IntegrationProcessor", mesg)){
+					//exchange.getOut().setBody("<Message><Failure>An exception has occured. An email is sent to Admin.</Failure></Message>");
+				}else{
+					//exchange.getOut().setBody("<Message><Failure>An exception has occured. Email sending to Admin failed too.</Failure></Message>");
+				}
 			}
 				return info;
 	}

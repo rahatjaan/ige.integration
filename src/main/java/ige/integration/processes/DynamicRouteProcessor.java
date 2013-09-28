@@ -6,9 +6,15 @@ import ige.integration.transformer.BillDetailsTransformer;
 import ige.integration.transformer.GuestCheckInTransformer;
 import ige.integration.transformer.GuestPlaceOrderTransformer;
 import ige.integration.transformer.GuestTransactionsTransformer;
+import ige.integration.utils.SendEmail;
 import ige.integration.utils.XMLElementExtractor;
 
+import java.io.IOException;
 import java.io.StringWriter;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.ProtocolException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -51,80 +57,142 @@ public class DynamicRouteProcessor implements Processor{
 		String flow = arg0.getIn().getHeader("flow").toString();
 		System.out.println("URL IS: "+url);
 		String req = arg0.getIn().getBody().toString();
+		//***** Find whether the given host is qualified or not
+		boolean isCon = isConnectable(url);
+		//*****************************************************
 		//*******************************************
-		System.out.println(req);
-		int ind1 = req.indexOf("<");
-		req = req.substring(ind1);
-		if(req.contains("&gt;")){
-			req = req.replaceAll("&gt;",">");
-			req = req.replaceAll("&lt;","<");
+		if(isCon){
+			System.out.println(req);
+			int ind1 = req.indexOf("<");
+			req = req.substring(ind1);
+			if(req.contains("&gt;")){
+				req = req.replaceAll("&gt;",">");
+				req = req.replaceAll("&lt;","<");
+			}
+			System.out.println("1"+req);
+			req = req.substring(req.indexOf("<o>"));
+			System.out.println("2"+req);
+			req = req.replaceAll("<o>","");
+			req = req.replaceAll("</o>","");
+			req = req.replaceAll("<item>","");
+			req = req.replaceAll("</item>","");
+			req = req.replaceAll("<e>","<item>");
+			req = req.replaceAll("</e>","</item>");
+			System.out.println("3"+req);
+			if(req.contains("</payload>"))
+				req = req.substring(0,req.indexOf("</payload>"));
+			
+			System.out.println("REQUEST : "+req);
+			try {
+	            // Create SOAP Connection
+	            SOAPConnectionFactory soapConnectionFactory = SOAPConnectionFactory.newInstance();
+	            SOAPConnection soapConnection = soapConnectionFactory.createConnection();
+	
+	            // Send SOAP Message to SOAP Server
+	            //String url = "http://ws.cdyne.com/emailverify/Emailvernotestemail.asmx";
+	            SOAPMessage soapResponse = null;
+	            if(Constants.GUESTBILLINFO.equalsIgnoreCase(flow) || Constants.SENDEMAIL.equalsIgnoreCase(flow)){
+	            	soapResponse = soapConnection.call(createSOAPRequestForGuestBillInfo(req), url);
+	            }else if(Constants.GUESTCHECKIN.equalsIgnoreCase(flow)){
+	            	//soapResponse = soapConnection.call(createSOAPRequestForGuestCheckIn(req), url);
+	            	// Call rest web service with following parameters firstname, lastname, email, checkout date, checkout time, email address, guest reward #, phone, and Tenant ID
+	            	String urLocator = "jetty:http://50.31.1.63:8080/RestIGEBackEnd/ws/restservice/guestCheckin";// REST URL here
+	            	//Convert body to json and add in body.
+	            	String jsonString = "{  'guestCheckIn'= { 'tenantId'='1',   'guestInfo'= {    'firstName'= '"+XMLElementExtractor.extractXmlElementValue(req, "firstName")+"',    'lastName'= '"+XMLElementExtractor.extractXmlElementValue(req, "lastName")+"',   'email'= '"+XMLElementExtractor.extractXmlElementValue(req, "email")+"'},    'guestStayInfo'= {    'roomNumber'= '"+XMLElementExtractor.extractXmlElementValue(req, "roomNumber")+"',   'arrivalDate'= '"+XMLElementExtractor.extractXmlElementValue(req, "arrivalDate")+"',    'departureDate'= '"+XMLElementExtractor.extractXmlElementValue(req, "departureDate")+"'    }  }}";
+	            	System.out.println(jsonString);
+	            	arg0.getOut().setHeader(Exchange.HTTP_METHOD, "POST");
+	            	arg0.getOut().setBody(jsonString);
+	            	String val = arg0.getContext().createProducerTemplate().requestBody(urLocator,jsonString, String.class);
+	            	System.out.println(val);
+	            	// Convert response into XML
+	            	String xmL = "<guestCheckIn><message>"+val+"</message></guestCheckIn>";
+	            	arg0.getOut().setBody(xmL);
+	            	//System.out.println("here");
+	            }else if(Constants.GUESTPLACEORDER.equalsIgnoreCase(flow)){
+	            	soapResponse = soapConnection.call(createSOAPRequestForPlaceOrder(req), url);
+	            }else if(Constants.GUESTCHECKOUT.equalsIgnoreCase(flow)){
+	            	soapResponse = soapConnection.call(createSOAPRequestForGuestCheckOut(req), url);
+	            }
+	            if(!Constants.GUESTCHECKIN.equalsIgnoreCase(flow)){
+	            // Process the SOAP Response
+	            String message = printSOAPResponse(soapResponse);
+	            message = message.replaceAll("&lt;","<");
+	            message = message.replaceAll("&gt;",">");
+	            System.out.println("BEFORE TRANSFORMATION: "+message);
+	            boolean flag = false;
+	            if(message.contains("<faultcode>")){
+	            	flag = true;
+	            }
+	            String body = "";
+	            if(Constants.GUESTBILLINFO.equalsIgnoreCase(flow) || Constants.SENDEMAIL.equalsIgnoreCase(flow)){
+	            	boolean sendEmail = false;
+	            	if(Constants.SENDEMAIL.equalsIgnoreCase(flow)){
+	            		sendEmail = true;
+	            	}
+	            	body = BillDetailsTransformer.transform(message,flag,sendEmail,emailSource);
+	            }else if(Constants.GUESTCHECKIN.equalsIgnoreCase(flow)){
+	            	body = GuestCheckInTransformer.transform(message,flag);
+	            }else if(Constants.GUESTPLACEORDER.equalsIgnoreCase(flow)){
+	            	body = GuestPlaceOrderTransformer.transform(message,flag);
+	            }else if(Constants.GUESTCHECKOUT.equalsIgnoreCase(flow)){
+	            	body = GuestTransactionsTransformer.transform(message,flag);
+	            }
+	            soapConnection.close();
+	            arg0.getOut().setBody(body);
+	            }
+	        } catch (Exception e) {
+	            System.err.println("Error occurred while sending SOAP Request to Server");
+	            e.printStackTrace();
+	            String mesg = "DynamicRouteProcessor: process: "+e.toString();
+	            if(1 == new SendEmail().sendEmail(emailSource.getHOST(), emailSource.getFROM_EMAIL(), emailSource.getADMIN_EMAIL(), emailSource.getPASS(), emailSource.getPORT(), null, "Exception occured at DynamicRouteProcessor.", mesg)){
+					arg0.getOut().setBody("<Message><Failure>An exception has occured. An email is sent to Admin.</Failure></Message>");
+				}else{
+					arg0.getOut().setBody("<Message><Failure>An exception has occured. Email sending to Admin failed too.</Failure></Message>");
+				}
+	        }
+	        
+			//*******************************************
+		}else{
+			//Email Admin
+			String mesg = "Can not connect to the URL at: "+url;
+			if(1 == new SendEmail().sendEmail(emailSource.getHOST(), emailSource.getFROM_EMAIL(), emailSource.getADMIN_EMAIL(), emailSource.getPASS(), emailSource.getPORT(), null, "Provided URL not found.", mesg)){
+				arg0.getOut().setBody("<Message><Failure>The PMS point couldn't connect at the URL. An email is sent to Admin.</Failure></Message>");
+			}else{
+				arg0.getOut().setBody("<Message><Failure>The PMS point couldn't connect at the URL. Email sending to Admin failed too.</Failure></Message>");
+			}
 		}
-		System.out.println("1"+req);
-		req = req.substring(req.indexOf("<o>"));
-		System.out.println("2"+req);
-		req = req.replaceAll("<o>","");
-		req = req.replaceAll("</o>","");
-		req = req.replaceAll("<item>","");
-		req = req.replaceAll("</item>","");
-		req = req.replaceAll("<e>","<item>");
-		req = req.replaceAll("</e>","</item>");
-		System.out.println("3"+req);
-		if(req.contains("</payload>"))
-			req = req.substring(0,req.indexOf("</payload>"));
-		
-		System.out.println("REQUEST : "+req);
-		try {
-            // Create SOAP Connection
-            SOAPConnectionFactory soapConnectionFactory = SOAPConnectionFactory.newInstance();
-            SOAPConnection soapConnection = soapConnectionFactory.createConnection();
-
-            // Send SOAP Message to SOAP Server
-            //String url = "http://ws.cdyne.com/emailverify/Emailvernotestemail.asmx";
-            SOAPMessage soapResponse = null;
-            if(Constants.GUESTBILLINFO.equalsIgnoreCase(flow) || Constants.SENDEMAIL.equalsIgnoreCase(flow)){
-            	soapResponse = soapConnection.call(createSOAPRequestForGuestBillInfo(req), url);
-            }else if(Constants.GUESTCHECKIN.equalsIgnoreCase(flow)){
-            	soapResponse = soapConnection.call(createSOAPRequestForGuestCheckIn(req), url);
-            }else if(Constants.GUESTPLACEORDER.equalsIgnoreCase(flow)){
-            	soapResponse = soapConnection.call(createSOAPRequestForPlaceOrder(req), url);
-            }else if(Constants.GUESTCHECKOUT.equalsIgnoreCase(flow)){
-            	soapResponse = soapConnection.call(createSOAPRequestForGuestCheckOut(req), url);
-            }
-
-            // Process the SOAP Response
-            String message = printSOAPResponse(soapResponse);
-            message = message.replaceAll("&lt;","<");
-            message = message.replaceAll("&gt;",">");
-            System.out.println("BEFORE TRANSFORMATION: "+message);
-            boolean flag = false;
-            if(message.contains("<faultcode>")){
-            	flag = true;
-            }
-            String body = "";
-            if(Constants.GUESTBILLINFO.equalsIgnoreCase(flow) || Constants.SENDEMAIL.equalsIgnoreCase(flow)){
-            	boolean sendEmail = false;
-            	if(Constants.SENDEMAIL.equalsIgnoreCase(flow)){
-            		sendEmail = true;
-            	}
-            	body = BillDetailsTransformer.transform(message,flag,sendEmail,emailSource);
-            }else if(Constants.GUESTCHECKIN.equalsIgnoreCase(flow)){
-            	body = GuestCheckInTransformer.transform(message,flag);
-            }else if(Constants.GUESTPLACEORDER.equalsIgnoreCase(flow)){
-            	body = GuestPlaceOrderTransformer.transform(message,flag);
-            }else if(Constants.GUESTCHECKOUT.equalsIgnoreCase(flow)){
-            	body = GuestTransactionsTransformer.transform(message,flag);
-            }
-            soapConnection.close();
-            arg0.getOut().setBody(body);
-        } catch (Exception e) {
-            System.err.println("Error occurred while sending SOAP Request to Server");
-            e.printStackTrace();
-        }
-		//*******************************************
-		
-		
 	}
 	
+	private boolean isConnectable(String ur){
+		boolean flag = false;
+		int i = 0;
+		while(i<5){
+			try {
+					   URL u = new URL ( ur );
+					   HttpURLConnection huc = ( HttpURLConnection )  u.openConnection ();
+					   huc.setRequestMethod ("GET");
+						   System.out.println("Try No: "+(i+1));
+						   huc.connect () ;
+						   flag = true;
+					   int code = huc.getResponseCode ( ) ;
+					   System.out.println(code);
+					   break;
+				} catch (MalformedURLException e) {
+					//e.printStackTrace();
+				} catch (ProtocolException e) {
+					//e.printStackTrace();
+				} catch (IOException e) {
+					//e.printStackTrace();
+				}
+			i++;
+		}
+		if(flag){
+			System.out.println("Done");
+		}else{
+			System.out.println("Couldn't connect.");
+		}
+		return flag;
+	}
 	
 	private static SOAPMessage createSOAPRequestForGuestBillInfo(String value) throws Exception {
         MessageFactory messageFactory = MessageFactory.newInstance();

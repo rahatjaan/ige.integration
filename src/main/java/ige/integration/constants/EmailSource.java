@@ -8,6 +8,13 @@ public class EmailSource {
 	private String MESSAGE;
 	private String PORT;
 	private String FILE_PATH;
+	private String ADMIN_EMAIL;
+	public String getADMIN_EMAIL() {
+		return ADMIN_EMAIL;
+	}
+	public void setADMIN_EMAIL(String aDMIN_EMAIL) {
+		ADMIN_EMAIL = aDMIN_EMAIL;
+	}
 	public String getPASS() {
 		return PASS;
 	}

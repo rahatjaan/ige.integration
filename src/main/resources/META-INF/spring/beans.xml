@@ -25,12 +25,28 @@
       <bean id="myEmailSource" class="ige.integration.constants.EmailSource">
       	<property name="PORT" value="587"/>
       	<property name="HOST" value="smtp.gmail.com"/>
+      	<!-- <property name="FROM_EMAIL" value="igeintegration@gmail.com"/> -->
+      	<!-- <property name="PASS" value="rahat547"/> -->
+      	<property name="FROM_EMAIL" value="myappinteg@gmail.com"/>
+      	<property name="PASS" value="Core9java."/>
+      	<property name="SUBJECT" value="Bill Details"/>
+      	<property name="MESSAGE" value="Please find the attached document.\n\n Regards...\n\nAcenonyx"/>
+      	<property name="FILE_PATH" value="/root/downloads/"/>
+      	<property name="ADMIN_EMAIL" value="rahat.jaan@gmail.com"/>
+      </bean>
+      
+      <!-- <bean id="myEmailSource" class="ige.integration.constants.EmailSource">
+      	<property name="PORT" value="2525"/>
+      	<property name="HOST" value="smtp.acenonyx.com"/>
       	<property name="FROM_EMAIL" value="igeintegration@gmail.com"/>
       	<property name="PASS" value="rahat547"/>
+      	<property name="FROM_EMAIL" value="igeintegration@acenonyx.com"/>
+      	<property name="PASS" value="Acenonyx75$"/>
       	<property name="SUBJECT" value="Bill Details"/>
-      	<property name="MESSAGE" value="MESSAGE"/>
+      	<property name="MESSAGE" value="Please find the attached document.\n\n Regards...\n\nAcenonyx"/>
       	<property name="FILE_PATH" value="/root/downloads/"/>
-      </bean>
+      	<property name="ADMIN_EMAIL" value="rali@acenonyx.com"/>
+      </bean> -->
       
       
 
@@ -42,9 +58,11 @@
 	
 	<bean id="integrationProcessor" class="ige.integration.processes.IntegrationProcessor">
 		<property name="dataSource" ref="myDataSource"/>
+		<property name="emailSource" ref="myEmailSource"/>
 	</bean>
 	<bean id="inRoomDiningProcessor" class="ige.integration.processes.InRoomDiningProcessor">
 		<property name="dataSource" ref="myDataSource"/>
+		<property name="emailSource" ref="myEmailSource"/>
 	</bean>
 	<bean id="dynamicRouteBuilder" class="ige.integration.processes.DynamicRouteProcessor">
 		<property name="emailSource" ref="myEmailSource"/>

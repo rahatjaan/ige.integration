@@ -23,21 +23,22 @@ public class SendEmail
     {
         // Get system properties
         Properties props = System.getProperties();
-
+        System.out.println("PORT: "+port);
         // Setup mail server
         props.put("mail.smtp.host", hostName);
         props.put("mail.smtp.starttls.enable", "true");
-        props.put("mail.smtp.auth", "true");
+        //props.put("mail.smtp.auth", "true");
         props.put("mail.smtp.port", port);
         props.put("mail.smtp.user", fromEmail);
         props.put("mail.smtp.password", password);
+        //props.put("mail.smtp.socketFactory.fallback", "false");
         props.put("mail.debug", "true");
         System.out.println(hostName);
         System.out.println(port);
         System.out.println(fromEmail);
         System.out.println(password);
         System.out.println(toEmail);
-        System.out.println(file);
+        //System.out.println(file);
         // Get session
         /*Session session = Session.getInstance(props,
                 new javax.mail.Authenticator() {
@@ -80,7 +81,7 @@ public class SendEmail
         	return 0;
         }
         // Handle text
-        String body = "<html><body>Hello, please find the attached Report...<br/><br/><br/>Regards...<br/>Acenonyx</body></html>";
+        String body = msg;
         System.out.println("REACHED-4");
         try{
         MimeBodyPart textPart = new MimeBodyPart();
@@ -99,6 +100,7 @@ public class SendEmail
         //Transport.send(message);
         System.out.println("REACHED-6");
         Transport transport = session.getTransport("smtp");
+        System.out.println("HOSTNAME: "+hostName+" from: "+fromEmail+" pass: "+password);
         transport.connect( hostName,fromEmail,password); //host, 25, "myemailhere", "mypasshere");
         System.out.println("REACHED-7");
         message.saveChanges();
