@@ -64,6 +64,10 @@
 		<property name="dataSource" ref="myDataSource"/>
 		<property name="emailSource" ref="myEmailSource"/>
 	</bean>
+	<bean id="addTenantProcessor" class="ige.integration.processes.AddTenantProcessor">
+		<property name="dataSource" ref="myDataSource"/>
+		<property name="emailSource" ref="myEmailSource"/>
+	</bean>
 	<bean id="dynamicRouteBuilder" class="ige.integration.processes.DynamicRouteProcessor">
 		<property name="emailSource" ref="myEmailSource"/>
 	</bean>

@@ -15,7 +15,12 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
+import java.sql.Timestamp;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -58,10 +63,10 @@ public class DynamicRouteProcessor implements Processor{
 		System.out.println("URL IS: "+url);
 		String req = arg0.getIn().getBody().toString();
 		//***** Find whether the given host is qualified or not
-		boolean isCon = isConnectable(url);
+		//boolean isCon = isConnectable(url);
 		//*****************************************************
 		//*******************************************
-		if(isCon){
+		if(isConnectable(url) || flow.equalsIgnoreCase(Constants.GUESTCHECKIN)){
 			System.out.println(req);
 			int ind1 = req.indexOf("<");
 			req = req.substring(ind1);
@@ -96,14 +101,50 @@ public class DynamicRouteProcessor implements Processor{
 	            }else if(Constants.GUESTCHECKIN.equalsIgnoreCase(flow)){
 	            	//soapResponse = soapConnection.call(createSOAPRequestForGuestCheckIn(req), url);
 	            	// Call rest web service with following parameters firstname, lastname, email, checkout date, checkout time, email address, guest reward #, phone, and Tenant ID
-	            	String urLocator = "jetty:http://50.31.1.63:8080/RestIGEBackEnd/ws/restservice/guestCheckin";// REST URL here
+	            	//String urLocator = "jetty:http://50.31.1.63:8080/RestIGEBackEnd/ws/restservice/guestCheckin";// REST URL here
+	            	String urLocator = "jetty:http://50.31.1.23/ige-onpremise/api/ige/guestCheckIn.json";// REST URL here
+	            	
+	            	String tD = XMLElementExtractor.extractXmlElementValue(req, "departureDate");
+	            	System.out.println("TD IS: "+tD);
+	            	String value = "";
+	            	if(null != tD && !"".equalsIgnoreCase(tD.trim())){
+	    	        	ind1 = tD.indexOf("T");
+	    	        	int ind2 = tD.indexOf("+");
+	    	        	if(-1 != ind1 && -1 != ind2){
+	    	        		String d = tD.substring(0,ind1)+" "+tD.substring(ind1+1,ind2);
+	    		        	DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	    		        	try {		        		 
+	    		        		Date date = df.parse(d);
+	    		        		System.out.println(date);
+	    		        		System.out.println(date.getTime()/1000);
+	    		        		value = Long.toString(date.getTime()/1000);
+	    		        	} catch (ParseException e) {
+	    		        		e.printStackTrace();
+	    		        	}
+	    		        	/*String d = tD.substring(0,ind1)+" "+tD.substring(ind1+1,ind2);
+	    		        	System.out.println("TIMESTAMP IS: "+d);
+	    		        	String vaaa = Timestamp.valueOf(d).toString();
+	    		        	System.out.println("1"+vaaa);
+	    		        	vaaa = vaaa.replaceAll(" ","");
+	    		        	System.out.println("2"+vaaa);
+	    		        	vaaa = vaaa.replaceAll("-","");
+	    		        	System.out.println("3"+vaaa);
+	    		        	//vaaa = vaaa.replaceAll(".0","");
+	    		        	System.out.println("4"+vaaa);
+	    		        	vaaa = vaaa.replaceAll(":","");
+	    		        	System.out.println("5"+vaaa);
+	    		        	value = vaaa;*/
+	    	        	}
+	    	        	value = value.replaceAll("-","");
+	            	}
+	            	
 	            	//Convert body to json and add in body.
-	            	String jsonString = "{  'guestCheckIn'= { 'tenantId'='1',   'guestInfo'= {    'firstName'= '"+XMLElementExtractor.extractXmlElementValue(req, "firstName")+"',    'lastName'= '"+XMLElementExtractor.extractXmlElementValue(req, "lastName")+"',   'email'= '"+XMLElementExtractor.extractXmlElementValue(req, "email")+"'},    'guestStayInfo'= {    'roomNumber'= '"+XMLElementExtractor.extractXmlElementValue(req, "roomNumber")+"',   'arrivalDate'= '"+XMLElementExtractor.extractXmlElementValue(req, "arrivalDate")+"',    'departureDate'= '"+XMLElementExtractor.extractXmlElementValue(req, "departureDate")+"'    }  }}";
+	            	String jsonString = "{ 'tenant_id'='1', 'first_name'= '"+XMLElementExtractor.extractXmlElementValue(req, "firstName")+"',    'last_name'= '"+XMLElementExtractor.extractXmlElementValue(req, "lastName")+"',   'email'= '"+XMLElementExtractor.extractXmlElementValue(req, "email")+"', 'phone'= '"+XMLElementExtractor.extractXmlElementValue(req, "mobileNumber")+"',   'guest_reward_number'= '123',    'checkout_time'= '"+value+"'}";
 	            	System.out.println(jsonString);
 	            	arg0.getOut().setHeader(Exchange.HTTP_METHOD, "POST");
 	            	arg0.getOut().setBody(jsonString);
 	            	String val = arg0.getContext().createProducerTemplate().requestBody(urLocator,jsonString, String.class);
-	            	System.out.println(val);
+	            	System.out.println("RESPONSE IS: "+val);
 	            	// Convert response into XML
 	            	String xmL = "<guestCheckIn><message>"+val+"</message></guestCheckIn>";
 	            	arg0.getOut().setBody(xmL);
