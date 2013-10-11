@@ -86,10 +86,16 @@ public class BillDetailsTransformer {
 		guestInfo = "<guestInfos>"+guestInfo;
 		ind1 = xml.indexOf("<guestStayInfo");
 		ind2 = xml.indexOf("<guestTransaction");
-		String guestStayInfo = xml.substring(ind1,ind2);
-		guestStayInfo += "</guestStayInfos>";
-		ind1 = ind2;
-		ind2 = xml.indexOf("</guestStay");
+		if(ind2 < 0){
+			ind2 = xml.indexOf("</guestStayInfo");
+		}
+		String guestStayInfo = "";
+		if(ind1 > 0 && ind2 > 0){
+			guestStayInfo = xml.substring(ind1,ind2);
+			guestStayInfo += "</guestStayInfos>";
+			ind1 = ind2;
+			ind2 = xml.indexOf("</guestStay");
+		}
 		String newGuestTr = "";
 		String guestTransactions = xml.substring(ind1,ind2);
 		while(-1 != guestTransactions.indexOf("<guestTransactionses>")){
@@ -109,7 +115,8 @@ public class BillDetailsTransformer {
 		        		Date date = df.parse(d);
 		        		System.out.println(date);
 		        		System.out.println(date.getTime()/1000);
-		        		v = Long.toString(date.getTime()/1000);
+		        		String va = Long.toString(date.getTime()/1000);
+		        		v = v.replace(tD,va);
 		        	} catch (ParseException e) {
 		        		e.printStackTrace();
 		        	}/*

@@ -6,6 +6,7 @@ import ige.integration.transformer.BillDetailsTransformer;
 import ige.integration.transformer.GuestCheckInTransformer;
 import ige.integration.transformer.GuestPlaceOrderTransformer;
 import ige.integration.transformer.GuestTransactionsTransformer;
+import ige.integration.transformer.ReservationTransformer;
 import ige.integration.utils.SendEmail;
 import ige.integration.utils.XMLElementExtractor;
 
@@ -15,7 +16,6 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
-import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -62,6 +62,7 @@ public class DynamicRouteProcessor implements Processor{
 		String flow = arg0.getIn().getHeader("flow").toString();
 		System.out.println("URL IS: "+url);
 		String req = arg0.getIn().getBody().toString();
+		boolean isNotValidResLookUp = false;
 		//***** Find whether the given host is qualified or not
 		//boolean isCon = isConnectable(url);
 		//*****************************************************
@@ -153,8 +154,13 @@ public class DynamicRouteProcessor implements Processor{
 	            	soapResponse = soapConnection.call(createSOAPRequestForPlaceOrder(req), url);
 	            }else if(Constants.GUESTCHECKOUT.equalsIgnoreCase(flow)){
 	            	soapResponse = soapConnection.call(createSOAPRequestForGuestCheckOut(req), url);
+	            }else if(Constants.RESERVLOOKUP.equalsIgnoreCase(flow)){
+	            	soapResponse = soapConnection.call(createSOAPRequestForReservationLookup(req), url);
+	            	if(null == soapResponse){
+	            		isNotValidResLookUp = true;
+	            	}
 	            }
-	            if(!Constants.GUESTCHECKIN.equalsIgnoreCase(flow)){
+	            if(!Constants.GUESTCHECKIN.equalsIgnoreCase(flow) && !isNotValidResLookUp){
 	            // Process the SOAP Response
 	            String message = printSOAPResponse(soapResponse);
 	            message = message.replaceAll("&lt;","<");
@@ -177,9 +183,16 @@ public class DynamicRouteProcessor implements Processor{
 	            	body = GuestPlaceOrderTransformer.transform(message,flag);
 	            }else if(Constants.GUESTCHECKOUT.equalsIgnoreCase(flow)){
 	            	body = GuestTransactionsTransformer.transform(message,flag);
+	            }else if(Constants.RESERVLOOKUP.equalsIgnoreCase(flow)){
+	            	body = ReservationTransformer.transform(message,flag);
 	            }
 	            soapConnection.close();
 	            arg0.getOut().setBody(body);
+	            }
+	            if(isNotValidResLookUp){
+	            	String body = "{\"ServiceError\":{\"faultstring\":\"An exception has occured.\",\"faultreason\":\"Please provide any of these three: (1). Reservation Confirmation Number (2). Last Name AND Last 4 digits of Credit Card (3). Hotel Loyalty Number\"}}";
+		            soapConnection.close();
+		            arg0.getOut().setBody(body);
 	            }
 	        } catch (Exception e) {
 	            System.err.println("Error occurred while sending SOAP Request to Server");
@@ -269,6 +282,66 @@ public class DynamicRouteProcessor implements Processor{
 
         MimeHeaders headers = soapMessage.getMimeHeaders();
         headers.addHeader("SOAPAction", serverURI  + "getBillInfo");
+
+        soapMessage.saveChanges();
+
+        /* Print the request message */
+        System.out.print("Request SOAP Message = ");
+        soapMessage.writeTo(System.out);
+        System.out.println();
+
+        return soapMessage;
+    }
+	
+	
+	private static SOAPMessage createSOAPRequestForReservationLookup(String value) throws Exception {
+        MessageFactory messageFactory = MessageFactory.newInstance();
+        SOAPMessage soapMessage = messageFactory.createMessage();
+        SOAPPart soapPart = soapMessage.getSOAPPart();
+
+        String serverURI = "http://webservice.integration.ige/";
+
+        // SOAP Envelope
+        SOAPEnvelope envelope = soapPart.getEnvelope();
+        envelope.addNamespaceDeclaration("web", serverURI);
+        String confirmationNumber=XMLElementExtractor.extractXmlElementValue(value, "confirmationNumber");
+        String lastName = XMLElementExtractor.extractXmlElementValue(value, "lastName");
+        String creditCard = XMLElementExtractor.extractXmlElementValue(value, "creditCard");
+        String loyaltyNum = XMLElementExtractor.extractXmlElementValue(value, "loyaltyNumber");
+        boolean flag = false;
+        if(null != confirmationNumber && !"".equalsIgnoreCase(confirmationNumber.trim())){
+        	flag = true;
+        }else if((null != lastName || null != creditCard) && (!"".equalsIgnoreCase(lastName.trim()) || !"".equalsIgnoreCase(creditCard.trim()))){
+        	flag = true;
+        }else if(null != loyaltyNum && !"".equalsIgnoreCase(loyaltyNum.trim())){
+        	flag = true;
+        }
+        
+        if(!flag){
+        	return null;
+        }
+        
+        SOAPBody soapBody = envelope.getBody();
+        SOAPElement soapBodyElem = soapBody.addChildElement("reservationLookup", "web");
+        SOAPElement soapBodyEleme = soapBodyElem.addChildElement("reservationDetails");
+        SOAPElement soapBodyElem1 = null;
+        if(null != confirmationNumber && !"".equalsIgnoreCase(confirmationNumber.trim())){
+	        soapBodyElem1 = soapBodyEleme.addChildElement("confirmationNumber");
+	        soapBodyElem1.addTextNode(confirmationNumber);
+        }
+        if(null != lastName && !"".equalsIgnoreCase(lastName.trim()) && null != creditCard && !"".equalsIgnoreCase(creditCard.trim())){
+	        SOAPElement soapBodyElem2 = soapBodyEleme.addChildElement("lastName");
+	        soapBodyElem2.addTextNode(lastName);
+	        SOAPElement soapBodyElem3 = soapBodyEleme.addChildElement("creditCard");
+	        soapBodyElem3.addTextNode(creditCard);
+        }
+        if(null != loyaltyNum && !"".equalsIgnoreCase(loyaltyNum.trim())){
+	        SOAPElement soapBodyElem4 = soapBodyEleme.addChildElement("loyaltyNumber");
+	        soapBodyElem4.addTextNode(loyaltyNum);
+        }
+
+        MimeHeaders headers = soapMessage.getMimeHeaders();
+        headers.addHeader("SOAPAction", serverURI  + "reservationDetails");
 
         soapMessage.saveChanges();
 
