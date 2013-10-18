@@ -25,10 +25,10 @@
       <bean id="myEmailSource" class="ige.integration.constants.EmailSource">
       	<property name="PORT" value="587"/>
       	<property name="HOST" value="smtp.gmail.com"/>
-      	<!-- <property name="FROM_EMAIL" value="igeintegration@gmail.com"/> -->
-      	<!-- <property name="PASS" value="rahat547"/> -->
-      	<property name="FROM_EMAIL" value="myappinteg@gmail.com"/>
-      	<property name="PASS" value="Core9java."/>
+      	<property name="FROM_EMAIL" value="igeintegration@gmail.com"/>
+      	<property name="PASS" value="rahat547"/>
+      	<!-- <property name="FROM_EMAIL" value="myappinteg@gmail.com"/>
+      	<property name="PASS" value="Core9java."/> -->
       	<property name="SUBJECT" value="Bill Details"/>
       	<property name="MESSAGE" value="Please find the attached document.\n\n Regards...\n\nAcenonyx"/>
       	<property name="FILE_PATH" value="/root/downloads/"/>
