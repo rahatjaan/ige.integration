@@ -413,7 +413,7 @@ public class DynamicRouteProcessor implements Processor{
         // SOAP Envelope
         SOAPEnvelope envelope = soapPart.getEnvelope();
         envelope.addNamespaceDeclaration("web", serverURI);
-        String[] guestInfo = {"firstName","lastName","fullAddress","mobileNumber","ratePlan","hhNumber","al","bonusAl","confirmationNumber","membershipNumber","bonusCode","groupName","email"};
+        String[] guestInfo = {"firstName","lastName","fullAddress","mobileNumber","ratePlan","loyaltyNumber","confirmationNumber","membershipNumber","bonusCode","groupName","email"};
         String[] guestStayInfo = {"roomNumber","floorNumber","arrivalDate","departureDate","folioNumber","totalBill","paymentType","creditAmount","cardType","cardNumber","balanceAmount","roomType","numberOfChildren","numberOfAdult","roomRate","creditCardExpirationDate","rateCode","reservationType"};
         SOAPBody soapBody = envelope.getBody();
         SOAPElement soapBodyElem = soapBody.addChildElement("guestCheckIn", "web");

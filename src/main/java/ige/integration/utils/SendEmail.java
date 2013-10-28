@@ -24,21 +24,10 @@ public class SendEmail
         // Get system properties
         Properties props = System.getProperties();
         System.out.println("PORT: "+port);
-        // Setup mail server
-        props.put("mail.smtp.host", hostName);
-        props.put("mail.smtp.starttls.enable", "true");
-        //props.put("mail.smtp.auth", "true");
-        props.put("mail.smtp.port", port);
-        props.put("mail.smtp.user", fromEmail);
-        props.put("mail.smtp.password", password);
-        //props.put("mail.smtp.socketFactory.fallback", "false");
-        props.put("mail.debug", "true");
-        System.out.println(hostName);
-        System.out.println(port);
-        System.out.println(fromEmail);
-        System.out.println(password);
-        System.out.println(toEmail);
-        //System.out.println(file);
+        props.put("mail.smtp.auth", "true");
+		props.put("mail.smtp.starttls.enable", "true");
+		props.put("mail.smtp.host", "smtp.gmail.com");
+		props.put("mail.smtp.port", "587");
         // Get session
         /*Session session = Session.getInstance(props,
                 new javax.mail.Authenticator() {
@@ -47,7 +36,12 @@ public class SendEmail
                 return new PasswordAuthentication(fromEmail, password);
             }
         });*/
-        Session session = Session.getInstance(props, new GMailAuthenticator(fromEmail, password));
+		Session session = Session.getInstance(props,
+				  new javax.mail.Authenticator() {
+					protected PasswordAuthentication getPasswordAuthentication() {
+						return new PasswordAuthentication(fromEmail, password);
+					}
+				  });
 
         System.out.println("REACHED-1");
         session.setDebug(true);
