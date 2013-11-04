@@ -41,8 +41,10 @@ public class AddTenantProcessor implements Processor {
 		String value = exchange.getIn().getBody().toString();
 		String outboundUrl = XMLElementExtractor.extractXmlElementValue(value, "outboundUrl");
 		String outboundType = XMLElementExtractor.extractXmlElementValue(value, "outboundType");
-		String phoneNum = XMLElementExtractor.extractXmlElementValue(value, "phoneNum");
-		if(addTenantInfo(outboundUrl,outboundType,phoneNum)){
+		String userName = XMLElementExtractor.extractXmlElementValue(value, "userName");
+		String password = XMLElementExtractor.extractXmlElementValue(value, "password");
+		String tenantGUID = XMLElementExtractor.extractXmlElementValue(value, "tenantGUID");
+		if(addTenantInfo(outboundUrl,outboundType,userName, password, tenantGUID)){
 			exchange.getOut().setBody("Tenant Infomation Added.");
 		}else{
 			exchange.getOut().setBody("Couldn't add tenant. Please see your parameters. OutboundType should be integer.");
@@ -54,10 +56,10 @@ public class AddTenantProcessor implements Processor {
 	PreparedStatement preparedStatement;
 	ResultSet resultSet;
 	
-	public boolean addTenantInfo(String outboundUrl,String outboundType,String phoneNum) throws Exception{
+	public boolean addTenantInfo(String outboundUrl,String outboundType,String userName, String password, String tenantGUID) throws Exception{
 		//JdbcTemplate jdbc = new JdbcTemplate(dataSource);
 		boolean flag = false;
-		String sql = "insert into tenant(outbound_end_point_type,outbound_url,PhoneNum) values(?,?,?)";
+		String sql = "insert into tenant(outbound_end_point_type,outbound_url,userName, password, tenantGUID) values(?,?,?,?,?)";
 		try{
 			Class.forName("com.mysql.jdbc.Driver");
 		      // Setup the connection with the DB
@@ -67,7 +69,9 @@ public class AddTenantProcessor implements Processor {
 	    	preparedStatement = connection.prepareStatement(sql);
 	    	preparedStatement.setInt(1,Integer.parseInt(outboundType));
 	    	preparedStatement.setString(2,outboundUrl);
-	    	preparedStatement.setString(3,phoneNum);
+	    	preparedStatement.setString(3,userName);
+	    	preparedStatement.setString(4,password);
+	    	preparedStatement.setString(5,tenantGUID);
 	    	preparedStatement.executeUpdate();
 	    	flag = true;
 		}catch(Exception e){

@@ -306,8 +306,8 @@ public class DynamicRouteProcessor implements Processor{
         envelope.addNamespaceDeclaration("web", serverURI);
         String confirmationNumber=XMLElementExtractor.extractXmlElementValue(value, "confirmationNumber");
         String lastName = XMLElementExtractor.extractXmlElementValue(value, "lastName");
-        String creditCard = XMLElementExtractor.extractXmlElementValue(value, "creditCard");
-        String loyaltyNum = XMLElementExtractor.extractXmlElementValue(value, "loyaltyNumber");
+        String creditCard = XMLElementExtractor.extractXmlElementValue(value, "maskedCardNumber");
+        String loyaltyNum = XMLElementExtractor.extractXmlElementValue(value, "loyaltyCardNumber");
         boolean flag = false;
         if(null != confirmationNumber && !"".equalsIgnoreCase(confirmationNumber.trim())){
         	flag = true;
@@ -332,11 +332,11 @@ public class DynamicRouteProcessor implements Processor{
         if(null != lastName && !"".equalsIgnoreCase(lastName.trim()) && null != creditCard && !"".equalsIgnoreCase(creditCard.trim())){
 	        SOAPElement soapBodyElem2 = soapBodyEleme.addChildElement("lastName");
 	        soapBodyElem2.addTextNode(lastName);
-	        SOAPElement soapBodyElem3 = soapBodyEleme.addChildElement("creditCard");
+	        SOAPElement soapBodyElem3 = soapBodyEleme.addChildElement("maskedCardNumber");
 	        soapBodyElem3.addTextNode(creditCard);
         }
         if(null != loyaltyNum && !"".equalsIgnoreCase(loyaltyNum.trim())){
-	        SOAPElement soapBodyElem4 = soapBodyEleme.addChildElement("loyaltyNumber");
+	        SOAPElement soapBodyElem4 = soapBodyEleme.addChildElement("loyaltyCardNumber");
 	        soapBodyElem4.addTextNode(loyaltyNum);
         }
 
