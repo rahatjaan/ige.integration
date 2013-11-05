@@ -6,6 +6,7 @@ import ige.integration.transformer.BillDetailsTransformer;
 import ige.integration.transformer.GuestCheckInTransformer;
 import ige.integration.transformer.GuestPlaceOrderTransformer;
 import ige.integration.transformer.GuestTransactionsTransformer;
+import ige.integration.transformer.HotelFolioTransformer;
 import ige.integration.transformer.ReservationTransformer;
 import ige.integration.utils.SendEmail;
 import ige.integration.utils.XMLElementExtractor;
@@ -159,6 +160,11 @@ public class DynamicRouteProcessor implements Processor{
 	            	if(null == soapResponse){
 	            		isNotValidResLookUp = true;
 	            	}
+	            }else if(Constants.HOTELFOLIO.equalsIgnoreCase(flow)){
+	            	soapResponse = soapConnection.call(createSOAPRequestForHotelFolio(req), url);
+	            	if(null == soapResponse){
+	            		isNotValidResLookUp = true;
+	            	}
 	            }
 	            if(!Constants.GUESTCHECKIN.equalsIgnoreCase(flow) && !isNotValidResLookUp){
 	            // Process the SOAP Response
@@ -185,6 +191,8 @@ public class DynamicRouteProcessor implements Processor{
 	            	body = GuestTransactionsTransformer.transform(message,flag);
 	            }else if(Constants.RESERVLOOKUP.equalsIgnoreCase(flow)){
 	            	body = ReservationTransformer.transform(message,flag);
+	            }else if(Constants.HOTELFOLIO.equalsIgnoreCase(flow)){
+	            	body = HotelFolioTransformer.transform(message,flag);
 	            }
 	            soapConnection.close();
 	            arg0.getOut().setBody(body);
@@ -343,6 +351,49 @@ public class DynamicRouteProcessor implements Processor{
         MimeHeaders headers = soapMessage.getMimeHeaders();
         headers.addHeader("SOAPAction", serverURI  + "reservationDetails");
 
+        soapMessage.saveChanges();
+
+        /* Print the request message */
+        System.out.print("Request SOAP Message = ");
+        soapMessage.writeTo(System.out);
+        System.out.println();
+
+        return soapMessage;
+    }
+	
+	private static SOAPMessage createSOAPRequestForHotelFolio(String value) throws Exception {
+        MessageFactory messageFactory = MessageFactory.newInstance();
+        SOAPMessage soapMessage = messageFactory.createMessage();
+        SOAPPart soapPart = soapMessage.getSOAPPart();
+
+        String serverURI = "http://webservice.integration.ige/";
+
+        // SOAP Envelope
+        SOAPEnvelope envelope = soapPart.getEnvelope();
+        envelope.addNamespaceDeclaration("web", serverURI);
+        String terminalId=XMLElementExtractor.extractXmlElementValue(value, "terminalId");
+        String reservationNumber = XMLElementExtractor.extractXmlElementValue(value, "reservationNumber");
+        String folioType = XMLElementExtractor.extractXmlElementValue(value, "folioType");
+        
+        SOAPBody soapBody = envelope.getBody();
+        SOAPElement soapBodyElem = soapBody.addChildElement("HotelFolio", "web");
+        SOAPElement soapBodyElem1 = null;
+        if(null != terminalId && !"".equalsIgnoreCase(terminalId.trim())){
+	        soapBodyElem1 = soapBodyElem.addChildElement("terminalId");
+	        soapBodyElem1.addTextNode(terminalId);
+        }
+        if(null != reservationNumber && !"".equalsIgnoreCase(reservationNumber.trim())){
+	        SOAPElement soapBodyElem2 = soapBodyElem.addChildElement("reservationNumber");
+	        soapBodyElem2.addTextNode(reservationNumber);
+        }
+        if(null != folioType && !"".equalsIgnoreCase(folioType.trim())){
+	        SOAPElement soapBodyElem4 = soapBodyElem.addChildElement("folioType");
+	        soapBodyElem4.addTextNode(folioType);
+        }
+
+        MimeHeaders headers = soapMessage.getMimeHeaders();
+        headers.addHeader("SOAPAction", serverURI  + "HotelFolio");
+        
         soapMessage.saveChanges();
 
         /* Print the request message */

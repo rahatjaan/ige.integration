@@ -6,7 +6,7 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import org.xml.sax.SAXException;
 
-public class ReservationTransformer {
+public class HotelFolioTransformer {
 	public static String transform(String message,boolean flag) throws ParserConfigurationException, SAXException, IOException{
 		if(flag){
 			int ind1 = message.indexOf("<soap:Fault");
@@ -14,7 +14,7 @@ public class ReservationTransformer {
 			message = message.substring(ind1,ind2);
 			ind1 = message.indexOf("<faultcode>");
 			message = message.substring(ind1);
-			message = "<ReservationLookupRS><ServiceError>"+message+"</ServiceError></ReservationLookupRS>";
+			message = "<HotelFolioRS><ServiceError>"+message+"</ServiceError></HotelFolioRS>";
 			System.out.println("Message is: "+message);
 		}else{
 			int ind1 = message.indexOf("<return");
@@ -24,7 +24,7 @@ public class ReservationTransformer {
 			ind1 = message.indexOf("<");
 			System.out.println("INDEX: "+ind1);
 			message = message.substring(ind1);
-			message = "<ReservationLookupRS>"+message+"</ReservationLookupRS>";
+			message = "<HotelFolioRS>"+message+"</HotelFolioRS>";
 			System.out.println("Message is: "+message);
 		}
 		return message;
