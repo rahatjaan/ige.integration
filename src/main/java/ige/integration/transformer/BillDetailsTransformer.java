@@ -7,11 +7,11 @@ import ige.integration.utils.XMLElementExtractor;
 
 import java.io.File;
 import java.io.IOException;
-import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.TimeZone;
 
 import javax.xml.parsers.ParserConfigurationException;
 
@@ -98,6 +98,7 @@ public class BillDetailsTransformer {
 		}
 		String newGuestTr = "";
 		String guestTransactions = xml.substring(ind1,ind2);
+		DateFormat dfm = new SimpleDateFormat("yyyyMMddHHmm");
 		while(-1 != guestTransactions.indexOf("<guestTransactionses>")){
         	ind1 = guestTransactions.indexOf("<guestTransactionses>");
         	ind2 = guestTransactions.indexOf("</guestTransactionses>");
@@ -105,41 +106,39 @@ public class BillDetailsTransformer {
         	v += "</guestTransactionses>";
         	guestTransactions = guestTransactions.substring(ind2+5);
         	String tD = XMLElementExtractor.extractXmlElementValue(v, "transactionDate");
-        	if(null != tD && !"".equalsIgnoreCase(tD.trim())){
-	        	ind1 = tD.indexOf("T");
-	        	ind2 = tD.indexOf("+");
-	        	if(-1 != ind1 && -1 != ind2){
-		        	String d = tD.substring(0,ind1)+" "+tD.substring(ind1+1,ind2);
-		        	DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		        	try {		        		 
-		        		Date date = df.parse(d);
-		        		System.out.println(date);
-		        		System.out.println(date.getTime()/1000);
-		        		String va = Long.toString(date.getTime()/1000);
-		        		v = v.replace(tD,va);
-		        	} catch (ParseException e) {
-		        		e.printStackTrace();
-		        	}/*
-		        	System.out.println("TIMESTAMP IS: "+d);
-		        	String vaaa = Timestamp.valueOf(d).toString();
-		        	System.out.println("1"+vaaa);
-		        	vaaa = vaaa.replaceAll(" ","");
-		        	System.out.println("2"+vaaa);
-		        	vaaa = vaaa.replaceAll("-","");
-		        	System.out.println("3"+vaaa);
-		        	//vaaa = vaaa.replaceAll(".0","");
-		        	System.out.println("4"+vaaa);
-		        	vaaa = vaaa.replaceAll(":","");
-		        	System.out.println("5"+vaaa);
-		        	System.out.println("BEFORE: "+v);
-		        	v = v.replace(tD,vaaa);
-		        	System.out.println("AFTER: "+v);*/
-	        	}
-        	}
+        	String d = new String(tD);
+        	tD=tD.replaceAll(" ","");
+        	 try {
+        		 tD = tD.replace("T"," ");
+        		 tD = tD.replace("Z","");
+        		 System.out.println("TD IS: "+tD);
+        		System.out.println("V HERE IS: "+v);
+				v = v.replace(d,Long.toString(timeConversion(tD)));
+				System.out.println("V NOW IS: "+v);
+			} catch (Exception e1) {
+				// TODO Auto-generated catch block
+				System.out.println("PARSING EXCEPTION");
+			}
         	newGuestTr += v;
         }
 		System.out.println("FINAL: "+guestInfo+guestStayInfo+newGuestTr);
 		return guestInfo+guestStayInfo+newGuestTr;
 	}
+	static long unixtime;
+	static DateFormat dfm = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"); 
+    static public long timeConversion(String time)
+    {
+        dfm.setTimeZone(TimeZone.getTimeZone("GMT+5:30"));//Specify your timezone 
+    try
+    {
+        unixtime = dfm.parse(time).getTime();  
+        unixtime=unixtime/1000;
+    } 
+    catch (ParseException e) 
+    {
+        e.printStackTrace();
+    }
+    return unixtime;
+    }
 }
 	

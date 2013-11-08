@@ -7,6 +7,8 @@ import ige.integration.transformer.GuestCheckInTransformer;
 import ige.integration.transformer.GuestPlaceOrderTransformer;
 import ige.integration.transformer.GuestTransactionsTransformer;
 import ige.integration.transformer.HotelFolioTransformer;
+import ige.integration.transformer.PaymentTransformer;
+import ige.integration.transformer.ReportProblemTransformer;
 import ige.integration.transformer.ReservationTransformer;
 import ige.integration.utils.SendEmail;
 import ige.integration.utils.XMLElementExtractor;
@@ -165,6 +167,10 @@ public class DynamicRouteProcessor implements Processor{
 	            	if(null == soapResponse){
 	            		isNotValidResLookUp = true;
 	            	}
+	            }else if(Constants.PAYMENTCARDPROCESSING.equalsIgnoreCase(flow)){
+	            	soapResponse = soapConnection.call(createSOAPRequestForPaymentCardProcessing(req), url);
+	            }else if(Constants.REPORTPROBLEM.equalsIgnoreCase(flow)){
+	            	soapResponse = soapConnection.call(createSOAPRequestForReportProblem(req), url);
 	            }
 	            if(!Constants.GUESTCHECKIN.equalsIgnoreCase(flow) && !isNotValidResLookUp){
 	            // Process the SOAP Response
@@ -193,6 +199,10 @@ public class DynamicRouteProcessor implements Processor{
 	            	body = ReservationTransformer.transform(message,flag);
 	            }else if(Constants.HOTELFOLIO.equalsIgnoreCase(flow)){
 	            	body = HotelFolioTransformer.transform(message,flag);
+	            }else if(Constants.PAYMENTCARDPROCESSING.equalsIgnoreCase(flow)){
+	            	body = PaymentTransformer.transform(message,flag);
+	            }else if(Constants.REPORTPROBLEM.equalsIgnoreCase(flow)){
+	            	body = ReportProblemTransformer.transform(message,flag);
 	            }
 	            soapConnection.close();
 	            arg0.getOut().setBody(body);
@@ -301,6 +311,52 @@ public class DynamicRouteProcessor implements Processor{
         return soapMessage;
     }
 	
+	private static SOAPMessage createSOAPRequestForReportProblem(String value) throws Exception {
+        MessageFactory messageFactory = MessageFactory.newInstance();
+        SOAPMessage soapMessage = messageFactory.createMessage();
+        SOAPPart soapPart = soapMessage.getSOAPPart();
+
+        String serverURI = "http://webservice.integration.ige/";
+
+        // SOAP Envelope
+        SOAPEnvelope envelope = soapPart.getEnvelope();
+        envelope.addNamespaceDeclaration("web", serverURI);
+        String lastName=XMLElementExtractor.extractXmlElementValue(value, "lastName");
+        //soapBodyElem1.addTextNode(lastName);
+        //SOAPElement soapBodyElem2 = soapBodyElem.addChildElement("memberShipNumber", "bil");
+        String confirmationNumber=XMLElementExtractor.extractXmlElementValue(value, "confirmationNumber");
+        //soapBodyElem2.addTextNode(membership);
+        //SOAPElement soapBodyElem3 = soapBodyElem.addChildElement("roomNumber", "bil");
+        String room=XMLElementExtractor.extractXmlElementValue(value, "roomNumber");
+        String problemID=XMLElementExtractor.extractXmlElementValue(value, "problemID");
+        String problemMessage=XMLElementExtractor.extractXmlElementValue(value, "problemMessage");
+        
+        SOAPBody soapBody = envelope.getBody();
+        SOAPElement soapBodyElem = soapBody.addChildElement("reportProblem", "web");
+        SOAPElement soapBodyElem1 = soapBodyElem.addChildElement("lastName");
+        soapBodyElem1.addTextNode(lastName);
+        SOAPElement soapBodyElem2 = soapBodyElem.addChildElement("confirmationNumber");
+        soapBodyElem2.addTextNode(confirmationNumber);
+        SOAPElement soapBodyElem3 = soapBodyElem.addChildElement("roomNumber");
+        soapBodyElem3.addTextNode(room);
+        SOAPElement soapBodyElem4 = soapBodyElem.addChildElement("problemID");
+        soapBodyElem4.addTextNode(problemID);
+        SOAPElement soapBodyElem5 = soapBodyElem.addChildElement("problemMessage");
+        soapBodyElem5.addTextNode(problemMessage);
+
+        MimeHeaders headers = soapMessage.getMimeHeaders();
+        headers.addHeader("SOAPAction", serverURI  + "reportProblem");
+
+        soapMessage.saveChanges();
+
+        /* Print the request message */
+        System.out.print("Request SOAP Message = ");
+        soapMessage.writeTo(System.out);
+        System.out.println();
+
+        return soapMessage;
+    }
+	
 	
 	private static SOAPMessage createSOAPRequestForReservationLookup(String value) throws Exception {
         MessageFactory messageFactory = MessageFactory.newInstance();
@@ -316,10 +372,13 @@ public class DynamicRouteProcessor implements Processor{
         String lastName = XMLElementExtractor.extractXmlElementValue(value, "lastName");
         String creditCard = XMLElementExtractor.extractXmlElementValue(value, "maskedCardNumber");
         String loyaltyNum = XMLElementExtractor.extractXmlElementValue(value, "loyaltyCardNumber");
+        String roomNumber = XMLElementExtractor.extractXmlElementValue(value, "roomNumber");
         boolean flag = false;
         if(null != confirmationNumber && !"".equalsIgnoreCase(confirmationNumber.trim())){
         	flag = true;
         }else if((null != lastName || null != creditCard) && (!"".equalsIgnoreCase(lastName.trim()) || !"".equalsIgnoreCase(creditCard.trim()))){
+        	flag = true;
+        }else if((null != lastName || null != roomNumber) && (!"".equalsIgnoreCase(lastName.trim()) || !"".equalsIgnoreCase(roomNumber.trim()))){
         	flag = true;
         }else if(null != loyaltyNum && !"".equalsIgnoreCase(loyaltyNum.trim())){
         	flag = true;
@@ -336,14 +395,17 @@ public class DynamicRouteProcessor implements Processor{
         if(null != confirmationNumber && !"".equalsIgnoreCase(confirmationNumber.trim())){
 	        soapBodyElem1 = soapBodyEleme.addChildElement("confirmationNumber");
 	        soapBodyElem1.addTextNode(confirmationNumber);
-        }
-        if(null != lastName && !"".equalsIgnoreCase(lastName.trim()) && null != creditCard && !"".equalsIgnoreCase(creditCard.trim())){
+        }else if(null != lastName && !"".equalsIgnoreCase(lastName.trim()) && null != creditCard && !"".equalsIgnoreCase(creditCard.trim())){
 	        SOAPElement soapBodyElem2 = soapBodyEleme.addChildElement("lastName");
 	        soapBodyElem2.addTextNode(lastName);
 	        SOAPElement soapBodyElem3 = soapBodyEleme.addChildElement("maskedCardNumber");
 	        soapBodyElem3.addTextNode(creditCard);
-        }
-        if(null != loyaltyNum && !"".equalsIgnoreCase(loyaltyNum.trim())){
+        }else if(null != lastName && !"".equalsIgnoreCase(lastName.trim()) && null != roomNumber && !"".equalsIgnoreCase(roomNumber.trim())){
+	        SOAPElement soapBodyElem2 = soapBodyEleme.addChildElement("lastName");
+	        soapBodyElem2.addTextNode(lastName);
+	        SOAPElement soapBodyElem3 = soapBodyEleme.addChildElement("roomNumber");
+	        soapBodyElem3.addTextNode(roomNumber);
+        }else if(null != loyaltyNum && !"".equalsIgnoreCase(loyaltyNum.trim())){
 	        SOAPElement soapBodyElem4 = soapBodyEleme.addChildElement("loyaltyCardNumber");
 	        soapBodyElem4.addTextNode(loyaltyNum);
         }
@@ -393,6 +455,74 @@ public class DynamicRouteProcessor implements Processor{
 
         MimeHeaders headers = soapMessage.getMimeHeaders();
         headers.addHeader("SOAPAction", serverURI  + "HotelFolio");
+        
+        soapMessage.saveChanges();
+
+        /* Print the request message */
+        System.out.print("Request SOAP Message = ");
+        soapMessage.writeTo(System.out);
+        System.out.println();
+
+        return soapMessage;
+    }
+	
+	private static SOAPMessage createSOAPRequestForPaymentCardProcessing(String value) throws Exception {
+        MessageFactory messageFactory = MessageFactory.newInstance();
+        SOAPMessage soapMessage = messageFactory.createMessage();
+        SOAPPart soapPart = soapMessage.getSOAPPart();
+
+        String serverURI = "http://webservice.integration.ige/";
+
+        // SOAP Envelope
+        SOAPEnvelope envelope = soapPart.getEnvelope();
+        envelope.addNamespaceDeclaration("web", serverURI);
+        String terminalId=XMLElementExtractor.extractXmlElementValue(value, "terminalId");
+        String confirmationNumber = XMLElementExtractor.extractXmlElementValue(value, "confirmationNumber");
+        String processType = XMLElementExtractor.extractXmlElementValue(value, "processType");
+        String paymentType = XMLElementExtractor.extractXmlElementValue(value, "paymentType");
+        String cardType = XMLElementExtractor.extractXmlElementValue(value, "cardType");
+        String cardHolderName = XMLElementExtractor.extractXmlElementValue(value, "cardHolderName");
+        String cardNumber = XMLElementExtractor.extractXmlElementValue(value, "cardNumber");
+        String creditCardExpirationDate = XMLElementExtractor.extractXmlElementValue(value, "creditCardExpirationDate");
+        
+        SOAPBody soapBody = envelope.getBody();
+        SOAPElement soapBodyElem = soapBody.addChildElement("paymentCardProcessing", "web");
+        SOAPElement soapBodyElem1 = null;
+        if(null != terminalId && !"".equalsIgnoreCase(terminalId.trim())){
+	        soapBodyElem1 = soapBodyElem.addChildElement("terminalId");
+	        soapBodyElem1.addTextNode(terminalId);
+        }
+        if(null != confirmationNumber && !"".equalsIgnoreCase(confirmationNumber.trim())){
+	        SOAPElement soapBodyElem2 = soapBodyElem.addChildElement("confirmationNumber");
+	        soapBodyElem2.addTextNode(confirmationNumber);
+        }
+        if(null != processType && !"".equalsIgnoreCase(processType.trim())){
+	        SOAPElement soapBodyElem4 = soapBodyElem.addChildElement("processType");
+	        soapBodyElem4.addTextNode(processType);
+        }
+        if(null != creditCardExpirationDate && !"".equalsIgnoreCase(creditCardExpirationDate.trim())){
+	        SOAPElement soapBodyElem4 = soapBodyElem.addChildElement("creditCardExpirationDate");
+	        soapBodyElem4.addTextNode(creditCardExpirationDate);
+        }
+        if(null != paymentType && !"".equalsIgnoreCase(paymentType.trim())){
+	        SOAPElement soapBodyElem4 = soapBodyElem.addChildElement("paymentType");
+	        soapBodyElem4.addTextNode(paymentType);
+        }
+        if(null != cardType && !"".equalsIgnoreCase(cardType.trim())){
+	        SOAPElement soapBodyElem4 = soapBodyElem.addChildElement("cardType");
+	        soapBodyElem4.addTextNode(cardType);
+        }
+        if(null != cardHolderName && !"".equalsIgnoreCase(cardHolderName.trim())){
+	        SOAPElement soapBodyElem4 = soapBodyElem.addChildElement("cardHolderName");
+	        soapBodyElem4.addTextNode(cardHolderName);
+        }
+        if(null != cardNumber && !"".equalsIgnoreCase(cardNumber.trim())){
+	        SOAPElement soapBodyElem4 = soapBodyElem.addChildElement("cardNumber");
+	        soapBodyElem4.addTextNode(cardNumber);
+        }
+
+        MimeHeaders headers = soapMessage.getMimeHeaders();
+        headers.addHeader("SOAPAction", serverURI  + "paymentCardProcessing");
         
         soapMessage.saveChanges();
 
