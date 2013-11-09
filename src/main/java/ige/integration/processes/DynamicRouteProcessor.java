@@ -5,6 +5,7 @@ import ige.integration.constants.EmailSource;
 import ige.integration.transformer.BillDetailsTransformer;
 import ige.integration.transformer.GuestCheckInTransformer;
 import ige.integration.transformer.GuestPlaceOrderTransformer;
+import ige.integration.transformer.GuestStayInfoTransformer;
 import ige.integration.transformer.GuestTransactionsTransformer;
 import ige.integration.transformer.HotelFolioTransformer;
 import ige.integration.transformer.PaymentTransformer;
@@ -171,6 +172,8 @@ public class DynamicRouteProcessor implements Processor{
 	            	soapResponse = soapConnection.call(createSOAPRequestForPaymentCardProcessing(req), url);
 	            }else if(Constants.REPORTPROBLEM.equalsIgnoreCase(flow)){
 	            	soapResponse = soapConnection.call(createSOAPRequestForReportProblem(req), url);
+	            }else if(Constants.GETGUESTSTAYINFO.equalsIgnoreCase(flow)){
+	            	soapResponse = soapConnection.call(createSOAPRequestForGetGuestStayInfo(req), url);
 	            }
 	            if(!Constants.GUESTCHECKIN.equalsIgnoreCase(flow) && !isNotValidResLookUp){
 	            // Process the SOAP Response
@@ -203,6 +206,8 @@ public class DynamicRouteProcessor implements Processor{
 	            	body = PaymentTransformer.transform(message,flag);
 	            }else if(Constants.REPORTPROBLEM.equalsIgnoreCase(flow)){
 	            	body = ReportProblemTransformer.transform(message,flag);
+	            }else if(Constants.GETGUESTSTAYINFO.equalsIgnoreCase(flow)){
+	            	body = GuestStayInfoTransformer.transform(message,flag);
 	            }
 	            soapConnection.close();
 	            arg0.getOut().setBody(body);
@@ -300,6 +305,51 @@ public class DynamicRouteProcessor implements Processor{
 
         MimeHeaders headers = soapMessage.getMimeHeaders();
         headers.addHeader("SOAPAction", serverURI  + "getBillInfo");
+
+        soapMessage.saveChanges();
+
+        /* Print the request message */
+        System.out.print("Request SOAP Message = ");
+        soapMessage.writeTo(System.out);
+        System.out.println();
+
+        return soapMessage;
+    }
+	
+	private static SOAPMessage createSOAPRequestForGetGuestStayInfo(String value) throws Exception {
+        MessageFactory messageFactory = MessageFactory.newInstance();
+        SOAPMessage soapMessage = messageFactory.createMessage();
+        SOAPPart soapPart = soapMessage.getSOAPPart();
+
+        String serverURI = "http://webservice.integration.ige/";
+
+        // SOAP Envelope
+        SOAPEnvelope envelope = soapPart.getEnvelope();
+        envelope.addNamespaceDeclaration("web", serverURI);
+        String lastName=XMLElementExtractor.extractXmlElementValue(value, "lastName");
+        //soapBodyElem1.addTextNode(lastName);
+        //SOAPElement soapBodyElem2 = soapBodyElem.addChildElement("memberShipNumber", "bil");
+        String email=XMLElementExtractor.extractXmlElementValue(value, "email");
+        //soapBodyElem2.addTextNode(membership);
+        //SOAPElement soapBodyElem3 = soapBodyElem.addChildElement("roomNumber", "bil");
+        String room=XMLElementExtractor.extractXmlElementValue(value, "roomNumber");
+        //soapBodyElem3.addTextNode(room);
+        
+        System.out.println("****************");
+        System.out.println(lastName+","+email+","+room);
+        System.out.println("****************");
+        
+        SOAPBody soapBody = envelope.getBody();
+        SOAPElement soapBodyElem = soapBody.addChildElement("getGuestStayInfo", "web");
+        SOAPElement soapBodyElem1 = soapBodyElem.addChildElement("lastName");
+        soapBodyElem1.addTextNode(lastName);
+        SOAPElement soapBodyElem2 = soapBodyElem.addChildElement("email");
+        soapBodyElem2.addTextNode(email);
+        SOAPElement soapBodyElem3 = soapBodyElem.addChildElement("roomNumber");
+        soapBodyElem3.addTextNode(room);
+
+        MimeHeaders headers = soapMessage.getMimeHeaders();
+        headers.addHeader("SOAPAction", serverURI  + "getGuestStayInfo");
 
         soapMessage.saveChanges();
 
