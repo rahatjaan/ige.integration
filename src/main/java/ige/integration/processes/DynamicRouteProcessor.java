@@ -3,14 +3,18 @@ package ige.integration.processes;
 import ige.integration.constants.Constants;
 import ige.integration.constants.EmailSource;
 import ige.integration.transformer.BillDetailsTransformer;
+import ige.integration.transformer.GetListRoomsTransformer;
 import ige.integration.transformer.GuestCheckInTransformer;
 import ige.integration.transformer.GuestPlaceOrderTransformer;
+import ige.integration.transformer.GuestSignatureTransformer;
 import ige.integration.transformer.GuestStayInfoTransformer;
 import ige.integration.transformer.GuestTransactionsTransformer;
 import ige.integration.transformer.HotelFolioTransformer;
 import ige.integration.transformer.PaymentTransformer;
 import ige.integration.transformer.ReportProblemTransformer;
 import ige.integration.transformer.ReservationTransformer;
+import ige.integration.transformer.UpdateGuestStayInfoTransformer;
+import ige.integration.transformer.UserPictureTransformer;
 import ige.integration.utils.SendEmail;
 import ige.integration.utils.XMLElementExtractor;
 
@@ -174,6 +178,14 @@ public class DynamicRouteProcessor implements Processor{
 	            	soapResponse = soapConnection.call(createSOAPRequestForReportProblem(req), url);
 	            }else if(Constants.GETGUESTSTAYINFO.equalsIgnoreCase(flow)){
 	            	soapResponse = soapConnection.call(createSOAPRequestForGetGuestStayInfo(req), url);
+	            }else if(Constants.GETLISTROOMS.equalsIgnoreCase(flow)){
+	            	soapResponse = soapConnection.call(createSOAPRequestForGetListRooms(req), url);
+	            }else if(Constants.GUESTSIGNATURE.equalsIgnoreCase(flow)){
+	            	soapResponse = soapConnection.call(createSOAPRequestForGuestSignature(req), url);
+	            }else if(Constants.USERPICTURE.equalsIgnoreCase(flow)){
+	            	soapResponse = soapConnection.call(createSOAPRequestForUserPicture(req), url);
+	            }else if(Constants.UPDATEGUESTSTAYINFO.equalsIgnoreCase(flow)){
+	            	soapResponse = soapConnection.call(createSOAPRequestForUpdateGuestStayInfo(req), url);
 	            }
 	            if(!Constants.GUESTCHECKIN.equalsIgnoreCase(flow) && !isNotValidResLookUp){
 	            // Process the SOAP Response
@@ -208,6 +220,14 @@ public class DynamicRouteProcessor implements Processor{
 	            	body = ReportProblemTransformer.transform(message,flag);
 	            }else if(Constants.GETGUESTSTAYINFO.equalsIgnoreCase(flow)){
 	            	body = GuestStayInfoTransformer.transform(message,flag);
+	            }else if(Constants.GETLISTROOMS.equalsIgnoreCase(flow)){
+	            	body = GetListRoomsTransformer.transform(message,flag);
+	            }else if(Constants.GUESTSIGNATURE.equalsIgnoreCase(flow)){
+	            	body = GuestSignatureTransformer.transform(message,flag);
+	            }else if(Constants.USERPICTURE.equalsIgnoreCase(flow)){
+	            	body = UserPictureTransformer.transform(message,flag);
+	            }else if(Constants.UPDATEGUESTSTAYINFO.equalsIgnoreCase(flow)){
+	            	body = UpdateGuestStayInfoTransformer.transform(message,flag);
 	            }
 	            soapConnection.close();
 	            arg0.getOut().setBody(body);
@@ -350,6 +370,191 @@ public class DynamicRouteProcessor implements Processor{
 
         MimeHeaders headers = soapMessage.getMimeHeaders();
         headers.addHeader("SOAPAction", serverURI  + "getGuestStayInfo");
+
+        soapMessage.saveChanges();
+
+        /* Print the request message */
+        System.out.print("Request SOAP Message = ");
+        soapMessage.writeTo(System.out);
+        System.out.println();
+
+        return soapMessage;
+    }
+	
+	private static SOAPMessage createSOAPRequestForUpdateGuestStayInfo(String value) throws Exception {
+        MessageFactory messageFactory = MessageFactory.newInstance();
+        SOAPMessage soapMessage = messageFactory.createMessage();
+        SOAPPart soapPart = soapMessage.getSOAPPart();
+
+        String serverURI = "http://webservice.pms.com/";
+
+        // SOAP Envelope
+        SOAPEnvelope envelope = soapPart.getEnvelope();
+        envelope.addNamespaceDeclaration("web", serverURI);
+        String confirmationNumber=XMLElementExtractor.extractXmlElementValue(value, "confirmationNumber");
+        String departureDate=XMLElementExtractor.extractXmlElementValue(value, "departureDate");
+        //soapBodyElem1.addTextNode(lastName);
+        //SOAPElement soapBodyElem2 = soapBodyElem.addChildElement("memberShipNumber", "bil");
+        String guestLastName=XMLElementExtractor.extractXmlElementValue(value, "guestLastName");
+        //soapBodyElem2.addTextNode(membership);
+        //SOAPElement soapBodyElem3 = soapBodyElem.addChildElement("roomNumber", "bil");
+        String guestEmail=XMLElementExtractor.extractXmlElementValue(value, "guestEmail");
+        //soapBodyElem3.addTextNode(room);
+        
+       
+        
+        SOAPBody soapBody = envelope.getBody();
+        SOAPElement soapBodyElem = soapBody.addChildElement("updateGuestStayInfo", "web");
+        SOAPElement soapBodyElem1 = soapBodyElem.addChildElement("confirmationNumber");
+        soapBodyElem1.addTextNode(confirmationNumber);
+        SOAPElement soapBodyElem2 = soapBodyElem.addChildElement("departureDate");
+        soapBodyElem2.addTextNode(departureDate);
+        SOAPElement soapBodyElem3 = soapBodyElem.addChildElement("guestLastName");
+        soapBodyElem3.addTextNode(guestLastName);
+        SOAPElement soapBodyElem4 = soapBodyElem.addChildElement("guestEmail");
+        soapBodyElem4.addTextNode(guestEmail);
+
+        MimeHeaders headers = soapMessage.getMimeHeaders();
+        headers.addHeader("SOAPAction", serverURI  + "updateGuestStayInfo");
+
+        soapMessage.saveChanges();
+
+        /* Print the request message */
+        System.out.print("Request SOAP Message = ");
+        soapMessage.writeTo(System.out);
+        System.out.println();
+
+        return soapMessage;
+    }
+	
+	private static SOAPMessage createSOAPRequestForUserPicture(String value) throws Exception {
+        MessageFactory messageFactory = MessageFactory.newInstance();
+        SOAPMessage soapMessage = messageFactory.createMessage();
+        SOAPPart soapPart = soapMessage.getSOAPPart();
+
+        String serverURI = "http://webservice.pms.com/";
+
+        // SOAP Envelope
+        SOAPEnvelope envelope = soapPart.getEnvelope();
+        envelope.addNamespaceDeclaration("web", serverURI);
+        //soapBodyElem1.addTextNode(lastName);
+        //SOAPElement soapBodyElem2 = soapBodyElem.addChildElement("memberShipNumber", "bil");
+        String confirmationNumber=XMLElementExtractor.extractXmlElementValue(value, "confirmationNumber");
+        //soapBodyElem2.addTextNode(membership);
+        //SOAPElement soapBodyElem3 = soapBodyElem.addChildElement("roomNumber", "bil");
+        String signatureFile=XMLElementExtractor.extractXmlElementValue(value, "userPic");
+        //soapBodyElem3.addTextNode(room);
+        SOAPBody soapBody = envelope.getBody();
+        SOAPElement soapBodyElem = soapBody.addChildElement("userPicture", "web");
+        if(null != confirmationNumber){
+	        SOAPElement soapBodyElem1 = soapBodyElem.addChildElement("confirmationNumber");
+	        soapBodyElem1.addTextNode(confirmationNumber);
+        }
+        if(null != signatureFile){
+	        SOAPElement soapBodyElem1 = soapBodyElem.addChildElement("userPic");
+	        soapBodyElem1.addTextNode(signatureFile);
+        }
+
+        MimeHeaders headers = soapMessage.getMimeHeaders();
+        headers.addHeader("SOAPAction", serverURI  + "userPicture");
+
+        soapMessage.saveChanges();
+
+        /* Print the request message */
+        System.out.print("Request SOAP Message = ");
+        soapMessage.writeTo(System.out);
+        System.out.println();
+
+        return soapMessage;
+    }
+	
+	private static SOAPMessage createSOAPRequestForGuestSignature(String value) throws Exception {
+        MessageFactory messageFactory = MessageFactory.newInstance();
+        SOAPMessage soapMessage = messageFactory.createMessage();
+        SOAPPart soapPart = soapMessage.getSOAPPart();
+
+        String serverURI = "http://webservice.integration.ige/";
+
+        // SOAP Envelope
+        SOAPEnvelope envelope = soapPart.getEnvelope();
+        envelope.addNamespaceDeclaration("web", serverURI);
+        String terminalId=XMLElementExtractor.extractXmlElementValue(value, "terminalId");
+        //soapBodyElem1.addTextNode(lastName);
+        //SOAPElement soapBodyElem2 = soapBodyElem.addChildElement("memberShipNumber", "bil");
+        String confirmationNumber=XMLElementExtractor.extractXmlElementValue(value, "confirmationNumber");
+        //soapBodyElem2.addTextNode(membership);
+        //SOAPElement soapBodyElem3 = soapBodyElem.addChildElement("roomNumber", "bil");
+        String signatureFile=XMLElementExtractor.extractXmlElementValue(value, "signatureFile");
+        //soapBodyElem3.addTextNode(room);
+        SOAPBody soapBody = envelope.getBody();
+        SOAPElement soapBodyElem = soapBody.addChildElement("guestSignature", "web");
+        if(null != terminalId){
+	        SOAPElement soapBodyElem1 = soapBodyElem.addChildElement("terminalId");
+	        soapBodyElem1.addTextNode(terminalId);
+        }
+        if(null != confirmationNumber){
+	        SOAPElement soapBodyElem1 = soapBodyElem.addChildElement("confirmationNumber");
+	        soapBodyElem1.addTextNode(confirmationNumber);
+        }
+        if(null != signatureFile){
+	        SOAPElement soapBodyElem1 = soapBodyElem.addChildElement("signatureFile");
+	        soapBodyElem1.addTextNode(signatureFile);
+        }
+
+        MimeHeaders headers = soapMessage.getMimeHeaders();
+        headers.addHeader("SOAPAction", serverURI  + "guestSignature");
+
+        soapMessage.saveChanges();
+
+        /* Print the request message */
+        System.out.print("Request SOAP Message = ");
+        soapMessage.writeTo(System.out);
+        System.out.println();
+
+        return soapMessage;
+    }
+	
+	private static SOAPMessage createSOAPRequestForGetListRooms(String value) throws Exception {
+        MessageFactory messageFactory = MessageFactory.newInstance();
+        SOAPMessage soapMessage = messageFactory.createMessage();
+        SOAPPart soapPart = soapMessage.getSOAPPart();
+
+        String serverURI = "http://webservice.pms.com/";
+
+        // SOAP Envelope
+        SOAPEnvelope envelope = soapPart.getEnvelope();
+        envelope.addNamespaceDeclaration("web", serverURI);
+        String fromPrice=XMLElementExtractor.extractXmlElementValue(value, "fromPrice");
+        //soapBodyElem1.addTextNode(lastName);
+        //SOAPElement soapBodyElem2 = soapBodyElem.addChildElement("memberShipNumber", "bil");
+        String toPrice=XMLElementExtractor.extractXmlElementValue(value, "toPrice");
+        //soapBodyElem2.addTextNode(membership);
+        //SOAPElement soapBodyElem3 = soapBodyElem.addChildElement("roomNumber", "bil");
+        String isComposite=XMLElementExtractor.extractXmlElementValue(value, "isComposite");
+        String isSmoking=XMLElementExtractor.extractXmlElementValue(value, "isSmoking");
+        //soapBodyElem3.addTextNode(room);
+        SOAPBody soapBody = envelope.getBody();
+        SOAPElement soapBodyElem = soapBody.addChildElement("listRooms", "web");
+        SOAPElement soapBodyEleme = soapBodyElem.addChildElement("roomList");
+        if(null != fromPrice){
+	        SOAPElement soapBodyElem1 = soapBodyEleme.addChildElement("fromPrice");
+	        soapBodyElem1.addTextNode(fromPrice);
+        }
+        if(null != toPrice){
+	        SOAPElement soapBodyElem1 = soapBodyEleme.addChildElement("toPrice");
+	        soapBodyElem1.addTextNode(toPrice);
+        }
+        if(null != isComposite){
+	        SOAPElement soapBodyElem1 = soapBodyEleme.addChildElement("isComposite");
+	        soapBodyElem1.addTextNode(isComposite);
+        }
+        if(null != isSmoking){
+	        SOAPElement soapBodyElem1 = soapBodyEleme.addChildElement("isSmoking");
+	        soapBodyElem1.addTextNode(isSmoking);
+        }
+
+        MimeHeaders headers = soapMessage.getMimeHeaders();
+        headers.addHeader("SOAPAction", serverURI  + "listRooms");
 
         soapMessage.saveChanges();
 

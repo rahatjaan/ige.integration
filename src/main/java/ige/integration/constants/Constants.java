@@ -11,4 +11,8 @@ public class Constants {
 	public static final String PAYMENTCARDPROCESSING = "PaymentCardProcessing";
 	public static final String REPORTPROBLEM = "ReportProblem";
 	public static final String GETGUESTSTAYINFO = "GetGuestStayInfo";
+	public static final String GETLISTROOMS = "GetListRooms";
+	public static final String GUESTSIGNATURE = "GuestSignature";
+	public static final String USERPICTURE = "UserPicture";
+	public static final String UPDATEGUESTSTAYINFO = "UpdateGuestStayInfo";
 }
