@@ -296,7 +296,7 @@ public class DynamicRouteProcessor implements Processor{
         SOAPMessage soapMessage = messageFactory.createMessage();
         SOAPPart soapPart = soapMessage.getSOAPPart();
 
-        String serverURI = "http://webservice.integration.ige/";
+        String serverURI = "http://webservice.pms.com/";
 
         // SOAP Envelope
         SOAPEnvelope envelope = soapPart.getEnvelope();
@@ -393,29 +393,94 @@ public class DynamicRouteProcessor implements Processor{
         envelope.addNamespaceDeclaration("web", serverURI);
         String confirmationNumber=XMLElementExtractor.extractXmlElementValue(value, "confirmationNumber");
         String departureDate=XMLElementExtractor.extractXmlElementValue(value, "departureDate");
+        String arrivalDate=XMLElementExtractor.extractXmlElementValue(value, "arrivalDate");
         //soapBodyElem1.addTextNode(lastName);
         //SOAPElement soapBodyElem2 = soapBodyElem.addChildElement("memberShipNumber", "bil");
-        String guestLastName=XMLElementExtractor.extractXmlElementValue(value, "guestLastName");
-        //soapBodyElem2.addTextNode(membership);
-        //SOAPElement soapBodyElem3 = soapBodyElem.addChildElement("roomNumber", "bil");
-        String guestEmail=XMLElementExtractor.extractXmlElementValue(value, "guestEmail");
-        //soapBodyElem3.addTextNode(room);
+        String cardType=XMLElementExtractor.extractXmlElementValue(value, "cardType");
+        String cardNumber=XMLElementExtractor.extractXmlElementValue(value, "cardNumber");
+        String specialRequests=XMLElementExtractor.extractXmlElementValue(value, "specialRequests");
+        String cvvNumber=XMLElementExtractor.extractXmlElementValue(value, "cvvNumber");
+        String folioNumber=XMLElementExtractor.extractXmlElementValue(value, "folioNumber");
+        String currencyCode=XMLElementExtractor.extractXmlElementValue(value, "currencyCode");
+        String cardExpiryDate=XMLElementExtractor.extractXmlElementValue(value, "cardExpiryDate");
+        String numberOfChildren=XMLElementExtractor.extractXmlElementValue(value, "numberOfChildren");
+        String numberOfAdults=XMLElementExtractor.extractXmlElementValue(value, "numberOfAdults");
+        String isCheckedOut=XMLElementExtractor.extractXmlElementValue(value, "isCheckedOut");
+        String namePrefix=XMLElementExtractor.extractXmlElementValue(value, "namePrefix");
+        String firstName=XMLElementExtractor.extractXmlElementValue(value, "firstName");
+        String lastName=XMLElementExtractor.extractXmlElementValue(value, "lastName");
+        String roomId=XMLElementExtractor.extractXmlElementValue(value, "roomId");
         
        
         
         SOAPBody soapBody = envelope.getBody();
-        SOAPElement soapBodyElem = soapBody.addChildElement("updateGuestStayInfo", "web");
+        SOAPElement soapBodyElem = soapBody.addChildElement("updateReservation", "web");
         SOAPElement soapBodyElem1 = soapBodyElem.addChildElement("confirmationNumber");
         soapBodyElem1.addTextNode(confirmationNumber);
         SOAPElement soapBodyElem2 = soapBodyElem.addChildElement("departureDate");
         soapBodyElem2.addTextNode(departureDate);
-        SOAPElement soapBodyElem3 = soapBodyElem.addChildElement("guestLastName");
-        soapBodyElem3.addTextNode(guestLastName);
-        SOAPElement soapBodyElem4 = soapBodyElem.addChildElement("guestEmail");
-        soapBodyElem4.addTextNode(guestEmail);
+        SOAPElement soapBodyElem3 = soapBodyElem.addChildElement("arrivalDate");
+        soapBodyElem3.addTextNode(arrivalDate);
+        SOAPElement soapBodyElem4 = soapBodyElem.addChildElement("reservationDetails");
+        if(null != cardType && !"".equalsIgnoreCase(cardType)){
+        	SOAPElement soapBodyElem5 = soapBodyElem4.addChildElement("cardType");
+            soapBodyElem5.addTextNode(cardType);
+        }
+        if(null != cardNumber && !"".equalsIgnoreCase(cardNumber)){
+        	SOAPElement soapBodyElem5 = soapBodyElem4.addChildElement("cardNumber");
+            soapBodyElem5.addTextNode(cardNumber);
+        }
+        if(null != specialRequests && !"".equalsIgnoreCase(specialRequests)){
+        	SOAPElement soapBodyElem5 = soapBodyElem4.addChildElement("specialRequests");
+            soapBodyElem5.addTextNode(specialRequests);
+        }
+        if(null != cvvNumber && !"".equalsIgnoreCase(cvvNumber)){
+        	SOAPElement soapBodyElem5 = soapBodyElem4.addChildElement("cvvNumber");
+            soapBodyElem5.addTextNode(cvvNumber);
+        }
+        if(null != folioNumber && !"".equalsIgnoreCase(folioNumber)){
+        	SOAPElement soapBodyElem5 = soapBodyElem4.addChildElement("folioNumber");
+            soapBodyElem5.addTextNode(folioNumber);
+        }
+        if(null != currencyCode && !"".equalsIgnoreCase(currencyCode)){
+        	SOAPElement soapBodyElem5 = soapBodyElem4.addChildElement("currencyCode");
+            soapBodyElem5.addTextNode(currencyCode);
+        }
+        if(null != cardExpiryDate && !"".equalsIgnoreCase(cardExpiryDate)){
+        	SOAPElement soapBodyElem5 = soapBodyElem4.addChildElement("cardExpiryDate");
+            soapBodyElem5.addTextNode(cardExpiryDate);
+        }
+        if(null != numberOfChildren && !"".equalsIgnoreCase(numberOfChildren)){
+        	SOAPElement soapBodyElem5 = soapBodyElem4.addChildElement("numberOfChildren");
+            soapBodyElem5.addTextNode(numberOfChildren);
+        }
+        if(null != numberOfAdults && !"".equalsIgnoreCase(numberOfAdults)){
+        	SOAPElement soapBodyElem5 = soapBodyElem4.addChildElement("numberOfAdults");
+            soapBodyElem5.addTextNode(numberOfAdults);
+        }
+        if(null != isCheckedOut && !"".equalsIgnoreCase(isCheckedOut)){
+        	SOAPElement soapBodyElem5 = soapBodyElem4.addChildElement("isCheckedOut");
+            soapBodyElem5.addTextNode(isCheckedOut);
+        }
+        if(null != namePrefix && !"".equalsIgnoreCase(namePrefix)){
+        	SOAPElement soapBodyElem5 = soapBodyElem4.addChildElement("namePrefix");
+            soapBodyElem5.addTextNode(namePrefix);
+        }
+        if(null != firstName && !"".equalsIgnoreCase(firstName)){
+        	SOAPElement soapBodyElem5 = soapBodyElem4.addChildElement("firstName");
+            soapBodyElem5.addTextNode(firstName);
+        }
+        if(null != lastName && !"".equalsIgnoreCase(lastName)){
+        	SOAPElement soapBodyElem5 = soapBodyElem4.addChildElement("lastName");
+            soapBodyElem5.addTextNode(lastName);
+        }
+        if(null != roomId && !"".equalsIgnoreCase(roomId)){
+        	SOAPElement soapBodyElem5 = soapBodyElem4.addChildElement("roomId");
+            soapBodyElem5.addTextNode(roomId);
+        }
 
         MimeHeaders headers = soapMessage.getMimeHeaders();
-        headers.addHeader("SOAPAction", serverURI  + "updateGuestStayInfo");
+        headers.addHeader("SOAPAction", serverURI  + "updateReservation");
 
         soapMessage.saveChanges();
 
@@ -618,7 +683,7 @@ public class DynamicRouteProcessor implements Processor{
         SOAPMessage soapMessage = messageFactory.createMessage();
         SOAPPart soapPart = soapMessage.getSOAPPart();
 
-        String serverURI = "http://webservice.integration.ige/";
+        String serverURI = "http://webservice.pms.com/";
 
         // SOAP Envelope
         SOAPEnvelope envelope = soapPart.getEnvelope();
@@ -628,6 +693,7 @@ public class DynamicRouteProcessor implements Processor{
         String creditCard = XMLElementExtractor.extractXmlElementValue(value, "maskedCardNumber");
         String loyaltyNum = XMLElementExtractor.extractXmlElementValue(value, "loyaltyCardNumber");
         String roomNumber = XMLElementExtractor.extractXmlElementValue(value, "roomNumber");
+        String requestorId = XMLElementExtractor.extractXmlElementValue(value, "requestorId");
         boolean flag = false;
         if(null != confirmationNumber && !"".equalsIgnoreCase(confirmationNumber.trim())){
         	flag = true;
@@ -647,6 +713,10 @@ public class DynamicRouteProcessor implements Processor{
         SOAPElement soapBodyElem = soapBody.addChildElement("reservationLookup", "web");
         SOAPElement soapBodyEleme = soapBodyElem.addChildElement("reservationDetails");
         SOAPElement soapBodyElem1 = null;
+        if(null != requestorId && !"".equalsIgnoreCase(requestorId.trim())){
+	        soapBodyElem1 = soapBodyEleme.addChildElement("requestorId");
+	        soapBodyElem1.addTextNode(requestorId);
+        }
         if(null != confirmationNumber && !"".equalsIgnoreCase(confirmationNumber.trim())){
 	        soapBodyElem1 = soapBodyEleme.addChildElement("confirmationNumber");
 	        soapBodyElem1.addTextNode(confirmationNumber);

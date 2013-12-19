@@ -14,7 +14,7 @@ public class UpdateGuestStayInfoTransformer {
 			message = message.substring(ind1,ind2);
 			ind1 = message.indexOf("<faultcode>");
 			message = message.substring(ind1);
-			message = "<UpdateGuestStayInfoRS><ServiceError>"+message+"</ServiceError></UpdateGuestStayInfoRS>";
+			message = "<ReservationRS><ServiceError>"+message+"</ServiceError></ReservationRS>";
 			System.out.println("Message is: "+message);
 		}else{
 			int ind1 = message.indexOf("<return");
@@ -24,7 +24,7 @@ public class UpdateGuestStayInfoTransformer {
 			ind1 = message.indexOf("<");
 			System.out.println("INDEX: "+ind1);
 			message = message.substring(ind1);
-			message = "<UpdateGuestStayInfoRS>"+message+"</UpdateGuestStayInfoRS>";
+			message = "<ReservationRS>"+message+"</ReservationRS>";
 			System.out.println("Message is: "+message);
 		}
 		return message;

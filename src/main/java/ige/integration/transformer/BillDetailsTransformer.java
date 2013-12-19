@@ -80,30 +80,30 @@ public class BillDetailsTransformer {
 	private static String getCustomMessage(String xml){
 		System.out.println("XML::: "+xml);
 		int ind1 = 0;
-		int ind2 = xml.indexOf("<guestStayInfo");
+		int ind2 = xml.indexOf("<reservations");
 		String guestInfo = xml.substring(ind1,ind2);
 		guestInfo += "</guestInfos>";
 		guestInfo = "<guestInfos>"+guestInfo;
-		ind1 = xml.indexOf("<guestStayInfo");
-		ind2 = xml.indexOf("<guestTransaction");
+		ind1 = xml.indexOf("<reservations");
+		ind2 = xml.indexOf("<transactionses");
 		if(ind2 < 0){
-			ind2 = xml.indexOf("</guestStayInfo");
+			ind2 = xml.indexOf("</reservations");
 		}
 		String guestStayInfo = "";
 		if(ind1 > 0 && ind2 > 0){
 			guestStayInfo = xml.substring(ind1,ind2);
-			guestStayInfo += "</guestStayInfos>";
+			guestStayInfo += "</reservations>";
 			ind1 = ind2;
-			ind2 = xml.indexOf("</guestStay");
+			ind2 = xml.indexOf("</reservations");
 		}
 		String newGuestTr = "";
 		String guestTransactions = xml.substring(ind1,ind2);
 		DateFormat dfm = new SimpleDateFormat("yyyyMMddHHmm");
-		while(-1 != guestTransactions.indexOf("<guestTransactionses>")){
-        	ind1 = guestTransactions.indexOf("<guestTransactionses>");
-        	ind2 = guestTransactions.indexOf("</guestTransactionses>");
+		while(-1 != guestTransactions.indexOf("<transactionses>")){
+        	ind1 = guestTransactions.indexOf("<transactionses>");
+        	ind2 = guestTransactions.indexOf("</transactionses>");
         	String v = guestTransactions.substring(ind1,ind2);
-        	v += "</guestTransactionses>";
+        	v += "</transactionses>";
         	guestTransactions = guestTransactions.substring(ind2+5);
         	String tD = XMLElementExtractor.extractXmlElementValue(v, "transactionDate");
         	String d = new String(tD);

@@ -110,7 +110,7 @@ public class IntegrationRouteBuilder extends RouteBuilder {
 		xmlJsonOptions.put(org.apache.camel.model.dataformat.XmlJsonDataFormat.EXPANDABLE_PROPERTIES, "d e");
 
 		
-		from("jetty:http://0.0.0.0:8888/updateGuestStayInfo")
+		from("jetty:http://0.0.0.0:8888/updateReservation")
 		.unmarshal().xmljson()	
 		.beanRef("inRoomDiningProcessor")	
 		.choice()

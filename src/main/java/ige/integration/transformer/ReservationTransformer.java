@@ -24,6 +24,9 @@ public class ReservationTransformer {
 			ind1 = message.indexOf("<");
 			System.out.println("INDEX: "+ind1);
 			message = message.substring(ind1);
+			if(message.contains("item")){
+				message = message.replaceAll("item","Guest");
+			}
 			message = "<ReservationLookupRS>"+message+"</ReservationLookupRS>";
 			System.out.println("Message is: "+message);
 		}
