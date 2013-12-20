@@ -28,6 +28,10 @@ public class GetListRoomsTransformer {
 			message = "<ListRoomsRS><ServiceError>"+message+"</ServiceError></ListRoomsRS>";
 			System.out.println("Message is: "+message);
 		}else{
+			if(message.contains("<return/>")){
+				message = "<ListRoomsRS>"+"NO ROOM MATCHED THIS CRITERIA!!!"+"</ListRoomsRS>";
+				return message;
+			}
 			int ind1 = message.indexOf("<return");
 			int ind2 = message.indexOf("</return>");
 			message = message.substring(ind1+3,ind2);
