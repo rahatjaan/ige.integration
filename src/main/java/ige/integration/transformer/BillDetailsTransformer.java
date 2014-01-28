@@ -37,7 +37,7 @@ public class BillDetailsTransformer {
 			ind1 = message.indexOf("<");
 			System.out.println("INDEX: " + ind1);
 			message = message.substring(ind1);
-			message = getCustomXmlForIGE(message);
+			message = "<guestInfos>"+getCustomXmlForIGE(message)+"</guestInfos>";
 		}
 		System.out.println("Message is: " + message);
 		return message;
@@ -119,7 +119,7 @@ public class BillDetailsTransformer {
 		int ind1 = 0;
 		int ind2 = xml.indexOf("<reservations");
 		String guestInfo = xml.substring(ind1, ind2);
-//		guestInfo += "</guestInfos>";
+		guestInfo += "</guestInfos>";
 		guestInfo = "<guestInfos>" + guestInfo;
 		ind1 = xml.indexOf("<reservations");
 		ind2 = xml.indexOf("<transactionses");
@@ -161,7 +161,7 @@ public class BillDetailsTransformer {
 		guestStayInfo = guestStayInfo.replaceFirst("<reservations>", "<guestStayInfos>");
 //		guestStayInfo = guestStayInfo.replaceFirst("</reservations>", "</guestStayInfos>");
 		System.out.println("FINAL: " + guestInfo + guestStayInfo + newGuestTr);
-		String finalXml =guestInfo + guestStayInfo + newGuestTr +"</guestStayInfos></guestInfos>";; 
+		String finalXml =guestInfo + guestStayInfo +"</guestStayInfos>"+ newGuestTr; 
 		return finalXml;
 	}
 
