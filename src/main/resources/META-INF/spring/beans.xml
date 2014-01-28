@@ -18,8 +18,8 @@
       	<property name="HOST" value="localhost"/>
       	<property name="USER" value="servicemix"/>
       	<property name="PASS" value="cyber8T0ken"/>
-      	<!-- <property name="USER" value="root"/>
-      	<property name="PASS" value="root"/> -->
+<!--       	<property name="USER" value="root"/> -->
+<!--       	<property name="PASS" value="rahat547"/> -->
       </bean>
       
       <bean id="myEmailSource" class="ige.integration.constants.EmailSource">

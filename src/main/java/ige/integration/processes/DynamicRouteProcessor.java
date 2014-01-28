@@ -65,10 +65,9 @@ public class DynamicRouteProcessor implements Processor{
 
 
 	public void process(Exchange arg0) throws Exception {
-		// TODO Auto-generated method stub
 		String url = arg0.getIn().getHeader("OutboundUrl").toString();
 		String flow = arg0.getIn().getHeader("flow").toString();
-		System.out.println("URL IS: "+url);
+		System.out.println("URL IS: "+url+" and flow:"+flow);
 		String req = arg0.getIn().getBody().toString();
 		boolean isNotValidResLookUp = false;
 		//***** Find whether the given host is qualified or not
@@ -105,9 +104,14 @@ public class DynamicRouteProcessor implements Processor{
 	            // Send SOAP Message to SOAP Server
 	            //String url = "http://ws.cdyne.com/emailverify/Emailvernotestemail.asmx";
 	            SOAPMessage soapResponse = null;
+	            
 	            if(Constants.GUESTBILLINFO.equalsIgnoreCase(flow) || Constants.SENDEMAIL.equalsIgnoreCase(flow)){
 	            	soapResponse = soapConnection.call(createSOAPRequestForGuestBillInfo(req), url);
-	            }else if(Constants.GUESTCHECKIN.equalsIgnoreCase(flow)){
+	            }
+	            else if(Constants.IGE_GUESTBILLINFO.equalsIgnoreCase(flow)){
+	            	soapResponse = soapConnection.call(createSOAPRequestForGuestBillInfo(req), url);
+	            }
+	            else if(Constants.GUESTCHECKIN.equalsIgnoreCase(flow)){
 	            	//soapResponse = soapConnection.call(createSOAPRequestForGuestCheckIn(req), url);
 	            	// Call rest web service with following parameters firstname, lastname, email, checkout date, checkout time, email address, guest reward #, phone, and Tenant ID
 	            	//String urLocator = "jetty:http://50.31.1.63:8080/RestIGEBackEnd/ws/restservice/guestCheckin";// REST URL here
@@ -204,7 +208,11 @@ public class DynamicRouteProcessor implements Processor{
 	            		sendEmail = true;
 	            	}
 	            	body = BillDetailsTransformer.transform(message,flag,sendEmail,emailSource);
-	            }else if(Constants.GUESTCHECKIN.equalsIgnoreCase(flow)){
+	            }
+	            else if(Constants.IGE_GUESTBILLINFO.equalsIgnoreCase(flow)){
+	            	body = BillDetailsTransformer.transformIGEBill(message,flag);
+	            }
+	            else if(Constants.GUESTCHECKIN.equalsIgnoreCase(flow)){
 	            	body = GuestCheckInTransformer.transform(message,flag);
 	            }else if(Constants.GUESTPLACEORDER.equalsIgnoreCase(flow)){
 	            	body = GuestPlaceOrderTransformer.transform(message,flag);
