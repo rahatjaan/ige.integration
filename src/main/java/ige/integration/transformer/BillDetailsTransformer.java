@@ -30,14 +30,19 @@ public class BillDetailsTransformer {
 					+ "</ServiceError></guestInfos>";
 		
 		} else {
-			int ind1 = message.indexOf("<return");
-			int ind2 = message.indexOf("</return>");
-			message = message.substring(ind1 + 3, ind2);
-//			System.out.println("ROUGH: " + message);
-			ind1 = message.indexOf("<");
-			System.out.println("INDEX: " + ind1);
-			message = message.substring(ind1);
-			message = "<guestInfos>"+getCustomXmlForIGE(message)+"</guestInfos>";
+			try{
+				int ind1 = message.indexOf("<return");
+				int ind2 = message.indexOf("</return>");
+				message = message.substring(ind1 + 3, ind2);
+	//			System.out.println("ROUGH: " + message);
+				ind1 = message.indexOf("<");
+				System.out.println("INDEX: " + ind1);
+				message = message.substring(ind1);
+				message = "<guestInfos>"+getCustomXmlForIGE(message)+"</guestInfos>";
+			}catch(Exception ex){
+				ex.printStackTrace();
+				message = "<guestInfos><ServiceError>No record found for provided request.</ServiceError></guestInfos>";
+			}
 		}
 		System.out.println("Message is: " + message);
 		return message;
