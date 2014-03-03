@@ -9,6 +9,13 @@ public class EmailSource {
 	private String PORT;
 	private String FILE_PATH;
 	private String ADMIN_EMAIL;
+	String FROM_NAME;
+	public String getFROM_NAME() {
+		return FROM_NAME;
+	}
+	public void setFROM_NAME(String fROM_NAME) {
+		FROM_NAME = fROM_NAME;
+	}
 	public String getADMIN_EMAIL() {
 		return ADMIN_EMAIL;
 	}

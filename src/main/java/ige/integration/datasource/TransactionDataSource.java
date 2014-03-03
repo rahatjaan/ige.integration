@@ -2,7 +2,10 @@ package ige.integration.datasource;
 
 import ige.integration.utils.XMLElementExtractor;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 public class TransactionDataSource extends AbstractReportDataSource {
 
@@ -10,6 +13,15 @@ public class TransactionDataSource extends AbstractReportDataSource {
 	 * 
 	 */
 	private static final long serialVersionUID = 7791109254854964392L;
+	double totalAmount;
+	
+	public double getTotalAmount() {
+		return totalAmount;
+	}
+
+	public void setTotalAmount(double totalAmount) {
+		this.totalAmount = totalAmount;
+	}
 
 	public TransactionDataSource() {
         super(new String[]{"transactionDate", "transactionDescription", "transactionCharges", "credits"});
@@ -23,26 +35,33 @@ public class TransactionDataSource extends AbstractReportDataSource {
     private void setTransaction(String xml,String creditAmount, String depDa){
         ArrayList<Row> rows = new ArrayList<Row>();
         String val = xml;
-        System.out.println("GGGGGGGGG: "+val.indexOf("<guestTransactionses>"));
-        while(-1 != val.indexOf("<guestTransactionses>")){
-        	int ind1 = val.indexOf("<guestTransactionses>");
-        	int ind2 = val.indexOf("</guestTransactionses>");
+//        System.out.println("GGGGGGGGG: "+val.indexOf("<transactionses>"));
+        int traverse = 0;
+        DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+        totalAmount = 0.0;
+        while(-1 != val.indexOf("<transactionses>",traverse)){
+        	int ind1 = val.indexOf("<transactionses>",traverse);
+        	int ind2 = val.indexOf("</transactionses>",traverse);
         	String v = val.substring(ind1,ind2);
-        	v += "</guestTransactionses>";
-        	val = val.substring(ind2+5);
+        	v += "</transactionses>";
+//        	val = val.substring(ind2+5);
+        	traverse = ind2+5;
         	String tD = XMLElementExtractor.extractXmlElementValue(v, "transactionDate");
-        	String dd = null;
-        	if(null != tD){
-        		dd = tD.substring(0,tD.indexOf("T"));
+        	String tDate = "";
+        	if(tD!=null){
+        	Long timeStamp = Long.parseLong(tD);
+        	 tDate= df.format(new Date(timeStamp*1000));
         	}
-        	Row row = new Row(dd, XMLElementExtractor.extractXmlElementValue(v, "description"), XMLElementExtractor.extractXmlElementValue(v, "charges"), XMLElementExtractor.extractXmlElementValue(v, "credits"));
+        	String charges = XMLElementExtractor.extractXmlElementValue(v, "charges");
+        	totalAmount+=Double.parseDouble(charges);
+			Row row = new Row(tDate, XMLElementExtractor.extractXmlElementValue(v, "description"), charges , "0");
             rows.add(row);
         }
         Row row = null;
 		if(null != xml && xml.length() > 0){
-        	row = new Row(depDa, "Credited Amount:", null, creditAmount);
+        	row = new Row(depDa, "Credited Amount:", null, ""+totalAmount);
 		}else{
-			row = new Row(null, "-", null, null);
+			row = new Row(null, "no data found", null, null);
 		}
         rows.add(row);
         setRows(rows);

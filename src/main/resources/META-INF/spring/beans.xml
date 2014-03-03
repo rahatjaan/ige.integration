@@ -26,12 +26,14 @@
       	<property name="PORT" value="587"/>
       	<property name="HOST" value="smtp.gmail.com"/>
       	<property name="FROM_EMAIL" value="igeintegration@gmail.com"/>
+      	<property name="FROM_NAME" value="Acenonyx"/>
       	<property name="PASS" value="rahat547"/>
       	<!-- <property name="FROM_EMAIL" value="myappinteg@gmail.com"/>
       	<property name="PASS" value="Core9java."/> -->
       	<property name="SUBJECT" value="Bill Details"/>
-      	<property name="MESSAGE" value="Please find the attached document.\n\n Regards...\n\nAcenonyx"/>
-      	<property name="FILE_PATH" value="/root/downloads/"/>
+      	<property name="MESSAGE" value="Please find the attached document. This contains the bill information for your stay."/>
+      	<property name="FILE_PATH" value="/root/Downloads/"/>
+<!--       	<property name="FILE_PATH" value="d://ige//"/> -->
       	<property name="ADMIN_EMAIL" value="rahat.jaan@gmail.com"/>
       </bean>
       

@@ -50,7 +50,7 @@ public class BillDetailsTransformer {
 
 	
 	public static String transform(String message, boolean flag,
-			boolean sendEmail, EmailSource emailS)
+			boolean sendEmail, EmailSource emailS,String request)
 			throws ParserConfigurationException, SAXException, IOException {
 		if (flag) {
 			int ind1 = message.indexOf("<soap:Fault");
@@ -62,6 +62,14 @@ public class BillDetailsTransformer {
 					+ "</ServiceError></guestInfos>";
 			System.out.println("Message is: " + message);
 		} else {
+			
+			String toEmail = XMLElementExtractor.extractXmlElementValue(
+					request, "to");
+			String content = XMLElementExtractor.extractXmlElementValue(
+					request, "content");
+			String subject = XMLElementExtractor.extractXmlElementValue(
+					request, "subject");
+
 			int ind1 = message.indexOf("<return");
 			int ind2 = message.indexOf("</return>");
 			message = message.substring(ind1 + 3, ind2);
@@ -69,41 +77,43 @@ public class BillDetailsTransformer {
 			ind1 = message.indexOf("<");
 			System.out.println("INDEX: " + ind1);
 			message = message.substring(ind1);
-			message = "<guestInfos>" + getCustomMessage(message)
-					+ "</guestInfos>";
-			String toEmail = XMLElementExtractor.extractXmlElementValue(
+			
+			message = "<guestInfos>"+getCustomMessage(message)+"</guestInfos>";
+					
+			
+			if(toEmail==null || toEmail.isEmpty())
+				toEmail = XMLElementExtractor.extractXmlElementValue(
 					message, "email");
 			System.out.println(message);
 			if (sendEmail) {
-				String fileDateName = new Date().toString();
-				fileDateName = fileDateName.replaceAll(" ", "-");
-				String myFilename = emailS.getFILE_PATH()
-						+ XMLElementExtractor.extractXmlElementValue(message,
-								"firstName")
-						+ "-"
-						+ XMLElementExtractor.extractXmlElementValue(message,
-								"lastName")
-						 + "-" + fileDateName + ".pdf";
-				myFilename = myFilename.replaceAll(":", "");
-			
+				String fileDateName = ""+new Date().getTime();
+//				DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+				String myFilename = fileDateName + ".pdf";
+//				myFilename = myFilename.replaceAll(":", "");
+							
 				if (null == toEmail || "".equalsIgnoreCase(toEmail.trim())) {
 					message = "<Email><Error>Guest Email Address is not found.</Error></Email>";
 				} else {
 					// First Generate Report
-
+					if(content==null || content.isEmpty())
+						content = emailS.getMESSAGE();
+					if(subject==null || subject.isEmpty())
+						subject = emailS.getSUBJECT();
 					if (1 == new GenerateReport().generateReport(message,
 							myFilename, emailS.getFILE_PATH())) {
 						if (1 == new SendEmail().sendEmail(emailS.getHOST(),
 								emailS.getFROM_EMAIL(), toEmail,
 								emailS.getPASS(), emailS.getPORT(), myFilename,
-								emailS.getSUBJECT(), emailS.getMESSAGE())) {
+								subject,content ,emailS.getFROM_NAME())) {
 							message = "<Email><Success>Email sent with attached report.</Success></Email>";
 						} else {
 							message = "<Email><Error>Email can not be sent now. Please try later.</Error></Email>";
 						}
+						message = "<Email><Success>Email sent with attached report.</Success></Email>";
 					} else {
 						message = "<Report><Error>Report can not be generated now. Please try later.</Error></Report>";
 					}
+					
 				}
 				File file = new File(myFilename);
 

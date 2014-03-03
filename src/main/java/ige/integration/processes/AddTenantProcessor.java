@@ -77,7 +77,7 @@ public class AddTenantProcessor implements Processor {
 		}catch(Exception e){
 			e.printStackTrace();
 			String mesg = "AddTenantProcessor: addTenantInfo "+e.toString();
-            if(1 == new SendEmail().sendEmail(emailSource.getHOST(), emailSource.getFROM_EMAIL(), emailSource.getADMIN_EMAIL(), emailSource.getPASS(), emailSource.getPORT(), null, "Database Failure at AddTenantProcessor", mesg)){
+            if(1 == new SendEmail().sendEmail(emailSource.getHOST(), emailSource.getFROM_EMAIL(), emailSource.getADMIN_EMAIL(), emailSource.getPASS(), emailSource.getPORT(), null, "Database Failure at AddTenantProcessor", mesg,emailSource.getFROM_NAME())){
 				//exchange.getOut().setBody("<Message><Failure>An exception has occured. An email is sent to Admin.</Failure></Message>");
 			}else{
 				//exchange.getOut().setBody("<Message><Failure>An exception has occured. Email sending to Admin failed too.</Failure></Message>");

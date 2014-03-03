@@ -105,8 +105,11 @@ public class DynamicRouteProcessor implements Processor{
 	            //String url = "http://ws.cdyne.com/emailverify/Emailvernotestemail.asmx";
 	            SOAPMessage soapResponse = null;
 	            
-	            if(Constants.GUESTBILLINFO.equalsIgnoreCase(flow) || Constants.SENDEMAIL.equalsIgnoreCase(flow)){
+	            if(Constants.GUESTBILLINFO.equalsIgnoreCase(flow) || Constants.SEND_BILL_INFO_EMAIL.equalsIgnoreCase(flow)){
 	            	soapResponse = soapConnection.call(createSOAPRequestForGuestBillInfo(req), url);
+	            }
+	            else if(Constants.SENDEMAIL.equalsIgnoreCase(flow)){
+	            	soapResponse = null;
 	            }
 	            else if(Constants.IGE_GUESTBILLINFO.equalsIgnoreCase(flow)){
 	            	soapResponse = soapConnection.call(createSOAPRequestForGuestBillInfo(req), url);
@@ -177,7 +180,8 @@ public class DynamicRouteProcessor implements Processor{
 	            		isNotValidResLookUp = true;
 	            	}
 	            }else if(Constants.PAYMENTCARDPROCESSING.equalsIgnoreCase(flow)){
-	            	soapResponse = soapConnection.call(createSOAPRequestForPaymentCardProcessing(req), url);
+//	            	soapResponse = soapConnection.call(createSOAPRequestForPaymentCardProcessing(req), url);
+	            	System.out.println("Payment Processing DONE");
 	            }else if(Constants.REPORTPROBLEM.equalsIgnoreCase(flow)){
 	            	soapResponse = soapConnection.call(createSOAPRequestForReportProblem(req), url);
 	            }else if(Constants.GETGUESTSTAYINFO.equalsIgnoreCase(flow)){
@@ -193,21 +197,39 @@ public class DynamicRouteProcessor implements Processor{
 	            }
 	            if(!Constants.GUESTCHECKIN.equalsIgnoreCase(flow) && !isNotValidResLookUp){
 	            // Process the SOAP Response
-	            String message = printSOAPResponse(soapResponse);
-	            message = message.replaceAll("&lt;","<");
-	            message = message.replaceAll("&gt;",">");
-	            System.out.println("BEFORE TRANSFORMATION: "+message);
+	            String message = printSOAPResponse(soapResponse); 
 	            boolean flag = false;
-	            if(message.contains("<faultcode>")){
-	            	flag = true;
+	            if(message!=null || !message.isEmpty()){
+		            message = message.replaceAll("&lt;","<");
+		            message = message.replaceAll("&gt;",">");
+		            System.out.println("BEFORE TRANSFORMATION: "+message);
+		           
+		            if(message.contains("<faultcode>")){
+		            	flag = true;
+		            }
 	            }
 	            String body = "";
-	            if(Constants.GUESTBILLINFO.equalsIgnoreCase(flow) || Constants.SENDEMAIL.equalsIgnoreCase(flow)){
+	            if(Constants.GUESTBILLINFO.equalsIgnoreCase(flow) || Constants.SEND_BILL_INFO_EMAIL.equalsIgnoreCase(flow)){
 	            	boolean sendEmail = false;
-	            	if(Constants.SENDEMAIL.equalsIgnoreCase(flow)){
+	            	if(Constants.SEND_BILL_INFO_EMAIL.equalsIgnoreCase(flow)){
 	            		sendEmail = true;
 	            	}
-	            	body = BillDetailsTransformer.transform(message,flag,sendEmail,emailSource);
+//	            	message= message+req;
+	            	body = BillDetailsTransformer.transform(message,flag,sendEmail,emailSource,req);
+	            	
+	            }
+	            else if(Constants.SENDEMAIL.equalsIgnoreCase(flow)){
+	            	System.out.println("request body:"+req);
+//	            	String from = XMLElementExtractor.extractXmlElementValue(req, "from");
+	            	String to = XMLElementExtractor.extractXmlElementValue(req, "to");
+	            	String subject = XMLElementExtractor.extractXmlElementValue(req, "subject");
+	            	String content = XMLElementExtractor.extractXmlElementValue(req, "content");
+	            	new SendEmail().sendEmail(emailSource.getHOST(),
+	            			emailSource.getFROM_EMAIL(), to,
+	            			emailSource.getPASS(), emailSource.getPORT(), null,
+	            			subject, content,emailSource.getFROM_NAME());
+	            	body = "<Message>Email is sent to "+to+"</Message>";
+	            			
 	            }
 	            else if(Constants.IGE_GUESTBILLINFO.equalsIgnoreCase(flow)){
 	            	body = BillDetailsTransformer.transformIGEBill(message,flag);
@@ -223,7 +245,11 @@ public class DynamicRouteProcessor implements Processor{
 	            }else if(Constants.HOTELFOLIO.equalsIgnoreCase(flow)){
 	            	body = HotelFolioTransformer.transform(message,flag);
 	            }else if(Constants.PAYMENTCARDPROCESSING.equalsIgnoreCase(flow)){
-	            	body = PaymentTransformer.transform(message,flag);
+	            	String authStr ="AuthorisationSuccessful";
+	            	if(req.contains("CardOnFile"))
+	            		authStr = "PaymentSuccessful";
+					//	            	<errorMessage></errorMessage>
+	            	body = "<PaymentCardProcessingRS><processType>authorization</processType><transactionStatus>"+authStr +"</transactionStatus></PaymentCardProcessingRS>";
 	            }else if(Constants.REPORTPROBLEM.equalsIgnoreCase(flow)){
 	            	body = ReportProblemTransformer.transform(message,flag);
 	            }else if(Constants.GETGUESTSTAYINFO.equalsIgnoreCase(flow)){
@@ -249,7 +275,7 @@ public class DynamicRouteProcessor implements Processor{
 	            System.err.println("Error occurred while sending SOAP Request to Server");
 	            e.printStackTrace();
 	            String mesg = "DynamicRouteProcessor: process: "+e.toString();
-	            if(1 == new SendEmail().sendEmail(emailSource.getHOST(), emailSource.getFROM_EMAIL(), emailSource.getADMIN_EMAIL(), emailSource.getPASS(), emailSource.getPORT(), null, "Exception occured at DynamicRouteProcessor.", mesg)){
+	            if(1 == new SendEmail().sendEmail(emailSource.getHOST(), emailSource.getFROM_EMAIL(), emailSource.getADMIN_EMAIL(), emailSource.getPASS(), emailSource.getPORT(), null, "Exception occured at DynamicRouteProcessor.", mesg,emailSource.getFROM_NAME())){
 					arg0.getOut().setBody("<Message><Failure>An exception has occured. An email is sent to Admin.</Failure></Message>");
 				}else{
 					arg0.getOut().setBody("<Message><Failure>An exception has occured. Email sending to Admin failed too.</Failure></Message>");
@@ -260,7 +286,7 @@ public class DynamicRouteProcessor implements Processor{
 		}else{
 			//Email Admin
 			String mesg = "Can not connect to the URL at: "+url;
-			if(1 == new SendEmail().sendEmail(emailSource.getHOST(), emailSource.getFROM_EMAIL(), emailSource.getADMIN_EMAIL(), emailSource.getPASS(), emailSource.getPORT(), null, "Provided URL not found.", mesg)){
+			if(1 == new SendEmail().sendEmail(emailSource.getHOST(), emailSource.getFROM_EMAIL(), emailSource.getADMIN_EMAIL(), emailSource.getPASS(), emailSource.getPORT(), null, "Provided URL not found.", mesg,emailSource.getFROM_NAME())){
 				arg0.getOut().setBody("<Message><Failure>The PMS point couldn't connect at the URL. An email is sent to Admin.</Failure></Message>");
 			}else{
 				arg0.getOut().setBody("<Message><Failure>The PMS point couldn't connect at the URL. Email sending to Admin failed too.</Failure></Message>");
@@ -326,8 +352,11 @@ public class DynamicRouteProcessor implements Processor{
         SOAPElement soapBodyElem = soapBody.addChildElement("getBillInfo", "web");
         SOAPElement soapBodyElem1 = soapBodyElem.addChildElement("lastName");
         soapBodyElem1.addTextNode(lastName);
-        SOAPElement soapBodyElem2 = soapBodyElem.addChildElement("email");
-        soapBodyElem2.addTextNode(email);
+        
+        if(email!=null && !email.isEmpty()){
+        	SOAPElement soapBodyElem2 = soapBodyElem.addChildElement("email");
+        	soapBodyElem2.addTextNode(email);
+        }
         SOAPElement soapBodyElem3 = soapBodyElem.addChildElement("roomNumber");
         soapBodyElem3.addTextNode(room);
 
@@ -1065,6 +1094,8 @@ public class DynamicRouteProcessor implements Processor{
      * Method used to print the SOAP Response
      */
     private static String printSOAPResponse(SOAPMessage soapResponse) throws Exception {
+    	if(soapResponse==null)
+    		return "";
         TransformerFactory transformerFactory = TransformerFactory.newInstance();
         Transformer transformer = transformerFactory.newTransformer();
         Source sourceContent = soapResponse.getSOAPPart().getContent();

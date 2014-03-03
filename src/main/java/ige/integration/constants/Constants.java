@@ -8,6 +8,7 @@ public class Constants {
 	public static final String GUESTCHECKOUT = "GuestCheckout";
 	public static final String RESERVLOOKUP = "ReservationLookup";
 	public static final String SENDEMAIL = "SendEmail";
+	public static final String SEND_BILL_INFO_EMAIL = "SendBillInfoEmail";
 	public static final String HOTELFOLIO = "HotelFolio";
 	public static final String PAYMENTCARDPROCESSING = "PaymentCardProcessing";
 	public static final String REPORTPROBLEM = "ReportProblem";

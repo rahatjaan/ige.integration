@@ -87,7 +87,7 @@ public class IntegrationProcessor implements Processor {
 			}catch(Exception e){
 				e.printStackTrace();
 				String mesg = "IntegrationProcessor: getTenantInfo "+e.toString();
-	            if(1 == new SendEmail().sendEmail(emailSource.getHOST(), emailSource.getFROM_EMAIL(), emailSource.getADMIN_EMAIL(), emailSource.getPASS(), emailSource.getPORT(), null, "Exception occured at IntegrationProcessor", mesg)){
+	            if(1 == new SendEmail().sendEmail(emailSource.getHOST(), emailSource.getFROM_EMAIL(), emailSource.getADMIN_EMAIL(), emailSource.getPASS(), emailSource.getPORT(), null, "Exception occured at IntegrationProcessor", mesg,emailSource.getFROM_NAME())){
 					//exchange.getOut().setBody("<Message><Failure>An exception has occured. An email is sent to Admin.</Failure></Message>");
 				}else{
 					//exchange.getOut().setBody("<Message><Failure>An exception has occured. Email sending to Admin failed too.</Failure></Message>");
