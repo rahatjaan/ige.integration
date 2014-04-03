@@ -8,8 +8,9 @@
         <version>4.4.1-fuse-01-11</version>
     </parent>
 
-    <groupId>acenonyx.integration</groupId>
-    <artifactId>td</artifactId>
+    <groupId>ige.integration</groupId>
+    <artifactId>ige.integration</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
     <name>IGEIntegration</name>
     <description>IGE Integration Implementation</description>
     <packaging>bundle</packaging>
@@ -251,5 +252,4 @@
             </releases>
         </pluginRepository>
     </pluginRepositories>
-    <version>0.1</version>
 </project>
